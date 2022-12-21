@@ -1,4 +1,4 @@
-name: "SMZDM Check-in Bot"
+name: "SMZDM"
 
 on:
   workflow_dispatch:
