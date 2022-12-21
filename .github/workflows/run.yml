@@ -5,7 +5,7 @@ on:
 
 
   schedule:
-      - cron: "0 9 * * *"
+      - cron: "0 1 * * *"
 
 env:
   TZ: Asia/Shanghai
