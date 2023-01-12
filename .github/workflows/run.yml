@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
   # 取消下面两行注释，务必自行更改为随机时间
-  # schedule:
-  #   - cron: "30 1 * * *"
+  schedule:
+    - cron: "02 0 * * *"
 
 env:
   TZ: Asia/Shanghai
