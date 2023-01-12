@@ -5,7 +5,7 @@ on:
 
   # 取消下面两行注释，务必自行更改为随机时间
   schedule:
-    - cron: "47 01 * * *"
+    - cron: "53 01 * * *"
 
 env:
   TZ: Asia/Shanghai
