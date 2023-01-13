@@ -1,8 +1,12 @@
 name: "SMZDM Check-in Bot"
 
 on:
-   schedule:
-    - cron: "40 09 * * *"
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: 43 9 * * *
 
 env:
   TZ: Asia/Shanghai
