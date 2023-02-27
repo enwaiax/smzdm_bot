@@ -126,7 +126,7 @@ class SmzdmBot(object):
         logger.info(resp.json()["data"])
 
 
-def conf_kwargs():
+def load_conf():
     conf_kwargs = {}
 
     if Path.exists(Path(CONFIG_PATH, "config.toml")):
@@ -153,7 +153,8 @@ def conf_kwargs():
     return conf_kwargs
 
 
-def main(conf_kwargs):
+def main():
+    conf_kwargs = load_conf()
     msg = ""
     if conf_kwargs.get("toml_conf"):
         for i in conf_kwargs["user"]:
@@ -178,4 +179,4 @@ def main(conf_kwargs):
 
 
 if __name__ == "__main__":
-    main(conf_kwargs())
+    main()

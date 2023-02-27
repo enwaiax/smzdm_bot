@@ -50,9 +50,11 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### 2.3 本地 docker 运行
+### 2.3 本地 docker-compose 运行
 
 见`docker-compose.yml`
+
+#### 2.3.1 单用户
 
 本地生成一个`.env` 文件, 用于配置 docker-compose.yml 运行所需要的环境变量， 如下:
 
@@ -72,6 +74,27 @@ TG_USER_ID = ""
 # 定时设定(可选)， 若未设定则随机定时执行
 SCH_HOUR=
 SCH_MINUTE=
+```
+
+#### 2.3.2 多用户
+
+参考模板`app/config/config_example.toml`. 复制`app/config/config_example.toml`为`app/config/config.toml`
+修改 docker-compose.yaml, 将`app/config/config.toml`mout 到容器内`/smzdm_bot/config/config.toml`
+
+```yaml
+version: "3.9"
+services:
+  smzdm_bot:
+    image: enwaiax/smzdm_bot
+    container_name: smzdm_bot
+    restart: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+    volumes:
+      - ./app/config/config.toml:/smzdm_bot/config/config.toml
 ```
 
 ## 3. 其它
@@ -94,6 +117,7 @@ SCH_MINUTE=
 - 2023-01-14, 登录认证失败, 签到失效
 - 2023-02-18, 通过安卓端验证登录，感谢[jzksnsjswkw/smzdm-app](https://github.com/jzksnsjswkw/smzdm-app)的思路. 旧版代码查看[old](https://github.com/Chasing66/smzdm_bot/tree/old)分支
 - 2023-02-25, 新增`all_reward` 和`extra_reward`两个接口，本地支持多用户运行
+- 2023-02-27, 修复本地 docker-compose 运行问题; 本地 docker-compose 支持多账号运行
 
 ## Stargazers over time
 
