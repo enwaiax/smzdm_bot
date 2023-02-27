@@ -86,7 +86,7 @@ class SmzdmBot(object):
             return msg
 
     def all_reward(self):
-        url = "https://user-api.smzdm.com/checkin/extra_reward"
+        url = "https://user-api.smzdm.com/checkin/all_reward"
         data = self._data()
         resp = self.session.post(url, data)
         if resp.status_code == 200 and int(resp.json()["error_code"]) == 0:
