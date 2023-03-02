@@ -12,7 +12,7 @@
 - 2022-12-08, 签到失败，浏览器端签到需要滑动验证码认证
 - 2023-01-11, 更改`User-Agent`为`iPhone`后可`bypass`滑块认证
 - 2023-01-14, 登录认证失败, 签到失效
-- 2023-02-18, 通过安卓端验证登录，感谢[jzksnsjswkw/smzdm-app](https://github.com/jzksnsjswkw/smzdm-app)的思路. 旧版代码查看[old](https://github.com/Chasing66/smzdm_bot/tree/old)分支
+- 2023-02-18, 通过安卓端验证登录，感谢 [jzksnsjswkw/smzdm-app](https://github.com/jzksnsjswkw/smzdm-app) 的思路. 旧版代码查看 [old](https://github.com/Chasing66/smzdm_bot/tree/old) 分支
 - 2023-02-25, 新增`all_reward` 和`extra_reward`两个接口，本地支持多用户运行
 - 2023-02-27, 修复本地 docker-compose 运行问题; 本地 docker-compose 支持多账号运行
 - 2023-03-01, 支持青龙面板且支持多账号
@@ -20,53 +20,17 @@
 ## 1. 实现功能
 
 - 每日签到, 额外奖励，随机奖励
-- 多种运行方式: Githb Action, 本地运行，docker， 青龙面板
-- 多种通知方式: `pushplus`, `server酱`, `telegram bot`(支持自定义反代`Telegram Bot API`. [搭建教程](https://anerg.com/2022/07/25/reverse-proxy-telegram-bot-api-using-cloudflare-worker.html)
-  )
+- 多种运行方式: GitHub Action, 本地运行，docker， 青龙面板
+- 多种通知方式: `pushplus`, `server酱`, `telegram bot`(支持自定义反代`Telegram Bot API`. [搭建教程](https://anerg.com/2022/07/25/reverse-proxy-telegram-bot-api-using-cloudflare-worker.html))
 - 支持多账号(需配置`config.toml`)
 
 ## 2. 使用方法
 
-### 2.1 Git Action 运行
+### 2.1 配置
 
-**务必自行更改为随机时间**
+#### 2.1.1 从环境变量中读取配置
 
-1. Fork[此仓库项目](https://github.com/Chasing66/smzdm_bot)>, 欢迎`star`~
-2. 修改 `.github/workflows/checkin.yml`里的下面部分, 取消`schedule`两行的注释，自行设定时间
-
-```yaml
-# UTC时间，对应Beijing时间 9：30
-schedule:
-  - cron: "30 1 * * *"
-```
-
-3. Secret 新增`ANDROID_COOKIE`,`SK` ,`USER_AGENT`，`TOKEN` [方法详见](#31-手机抓包)
-4. (可选) Secret 新增`PUSH_PLUS_TOKEN`用于推送通知, [详见](https://www.pushplus.plus/)
-5. (可选) Secret 新增`SC_KEY`用于推送通知, [详见](https://sct.ftqq.com/)
-6. (可选) Secret 新增`TG_BOT_TOKEN` 和`TG_USER_ID`用于推送通知
-7. (可选) Secret 新增`TG_BOT_API`用于自定义反代的`Telegram Bot API`
-
-### 2.2 本地运行(支持多用户)
-
-参考模板`app/config/config_example.toml`. 复制`app/config/config_example.toml`为`app/config/config.toml`，并按照需求配置
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-cd app
-pip install -r requirements.txt
-python main.py
-```
-
-### 2.3 本地 docker-compose 运行
-
-见`docker-compose.yml`
-
-#### 2.3.1 单用户
-
-本地生成一个`.env` 文件, 用于配置 docker-compose.yml 运行所需要的环境变量， 如下:
-
-```
+```conf
 # Cookie
 USER_AGENT = ""
 ANDROID_COOKIE = ""
@@ -79,15 +43,68 @@ SC_KEY = ""
 TG_BOT_TOKEN = ""
 TG_USER_ID = ""
 
-# 定时设定(可选)， 若未设定则随机定时执行
+# 用于自定义反代的Telegram Bot API(按需设置)
+TG_BOT_API = ""
+
+# 用于docker运行的定时设定(可选)，未设定则随机定时执行
 SCH_HOUR=
 SCH_MINUTE=
 ```
 
-#### 2.3.2 多用户
+#### 2.1.2 从`config.toml`中读取
 
-参考模板`app/config/config_example.toml`. 复制`app/config/config_example.toml`为`app/config/config.toml`
-修改 docker-compose.yaml, 将`app/config/config.toml`mout 到容器内`/smzdm_bot/config/config.toml`
+参考模板 [app/config/config_example.toml](https://github.com/Chasing66/smzdm_bot/blob/main/app/config/config_example.toml)
+
+```toml
+[user.A]
+USER_AGENT = ""
+ANDROID_COOKIE = ""
+SK = ""
+TOKEN = ""
+
+[user.B]
+USER_AGENT = ""
+ANDROID_COOKIE = ""
+SK = ""
+TOKEN = ""
+
+[notify]
+PUSH_PLUS_TOKEN = ""
+SC_KEY = ""
+TG_BOT_TOKEN = ""
+TG_USER_ID = ""
+```
+
+### 2.2 Git Action 运行
+
+GitHub Action 仅支持`env`配置方式, **务必自行更改为随机时间**
+
+1. Fork[此仓库项目](https://github.com/Chasing66/smzdm_bot)>, 欢迎`star`~
+2. 修改 `.github/workflows/checkin.yml`里的下面部分, 取消`schedule`两行的注释，自行设定时间
+
+```yaml
+# UTC时间，对应Beijing时间 9：30
+schedule:
+  - cron: "30 1 * * *"
+```
+
+3. 配置参考 [2.1.1 从环境变量中读取配置](#211-从环境变量中读取配置)
+
+### 2.3 本地直接运行(支持多用户)
+
+按照需求配置，参考 [2.1.2 从 config.toml 中读取](#212-从-config.toml-中读取)
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+cd app
+pip install -r requirements.txt
+python main.py
+```
+
+### 2.4 本地 docker-compose 运行
+
+修改 [docker-compose.yaml](https://github.com/Chasing66/smzdm_bot/blob/main/docker-compose.yml), 将`app/config/config.toml`mout 到容器内`/smzdm_bot/config/config.toml`
 
 ```yaml
 version: "3.9"
@@ -105,13 +122,15 @@ services:
       - ./app/config/config.toml:/smzdm_bot/config/config.toml
 ```
 
-### 2.4 青龙面板
+### 2.5 青龙面板
 
 ```
 ql repo https://github.com/Chasing66/smzdm_bot "smzdm_ql.py"
 ```
 
-默认情况下从环境变量读取配置,仅支持单用户. 如果需要支持多用户，推荐使用`config.toml`, 配置方法如上所述.
+默认情况下从环境变量读取配置,仅支持单用户.
+
+如果需要支持多用户，推荐使用`config.toml`, 配置方法如上所述.
 配置完成后, 拷贝`config.toml`到青龙容器内的`/ql/data/repo/Chasing66_smzdm_bot/app/config`
 
 ```
