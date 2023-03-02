@@ -16,6 +16,8 @@
 - 2023-02-25, 新增`all_reward` 和`extra_reward`两个接口，本地支持多用户运行
 - 2023-02-27, 修复本地 docker-compose 运行问题; 本地 docker-compose 支持多账号运行
 - 2023-03-01, 支持青龙面板且支持多账号
+- 2023-03-01, 仅需要`ANDROID_COOKIE`和`SK`两个变量，自动生成`USER_AGENT`和`TOKEN`, 引入随机休眠，减小被封概率
+- 2023-03-02, 新增每日抽奖，参考 hex-ci 的[思路](https://github.com/hex-ci/smzdm_script/blob/main/smzdm_lottery.js)
 
 ## 1. 实现功能
 
@@ -32,10 +34,8 @@
 
 ```conf
 # Cookie
-USER_AGENT = ""
 ANDROID_COOKIE = ""
 SK = ""
-TOKEN = ""
 
 # Notification
 PUSH_PLUS_TOKEN = ""
@@ -57,16 +57,14 @@ SCH_MINUTE=
 
 ```toml
 [user.A]
-USER_AGENT = ""
 ANDROID_COOKIE = ""
 SK = ""
-TOKEN = ""
 
 [user.B]
-USER_AGENT = ""
+# Disable userB的签到. 不配置此参数默认启用该用户
+Disable = true
 ANDROID_COOKIE = ""
 SK = ""
-TOKEN = ""
 
 [notify]
 PUSH_PLUS_TOKEN = ""
@@ -155,6 +153,7 @@ schedule:
 2. 开始抓包，并打开什么值得买 APP
 3. 过滤域名为`user-api.smzdm.com`的 post 请求
 4. 点击右上角分享，复制 cURL，转换 curl 请求为 python 格式，[方法](https://curlconverter.com/)
+5. 填入转换后的`Cookies`和`sk`两个值
 
 ## 5. Stargazers over time
 

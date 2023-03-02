@@ -18,13 +18,12 @@ jobs:
       image: enwaiax/smzdm_bot
       env:
         ANDROID_COOKIE: ${{ secrets.ANDROID_COOKIE }}
-        TOKEN: ${{ secrets.TOKEN }}
         SK: ${{ secrets.SK }}
-        USER_AGENT: ${{ secrets.USER_AGENT }}
         PUSH_PLUS_TOKEN: ${{ secrets.PUSH_PLUS_TOKEN }}
         SC_KEY: ${{ secrets.SC_KEY }}
         TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
         TG_USER_ID: ${{ secrets.TG_USER_ID }}
+        TG_BOT_API: ${{ secrets.TG_BOT_API }}
     steps:
       - name: Working
         run: |
