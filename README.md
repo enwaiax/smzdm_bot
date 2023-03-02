@@ -24,11 +24,11 @@
 - 多种通知方式: `pushplus`, `server酱`, `telegram bot`(支持自定义反代`Telegram Bot API`. [搭建教程](https://anerg.com/2022/07/25/reverse-proxy-telegram-bot-api-using-cloudflare-worker.html))
 - 支持多账号(需配置`config.toml`)
 
-## 2. 使用方法
+## 2. 配置
 
-### 2.1 配置
+支持两种读取配置的方法，从环境变量或者`config.toml`中读取
 
-#### 2.1.1 从环境变量中读取配置
+### 2.1 从环境变量中读取配置
 
 ```conf
 # Cookie
@@ -51,7 +51,7 @@ SCH_HOUR=
 SCH_MINUTE=
 ```
 
-#### 2.1.2 从`config.toml`中读取
+### 2.1 从`config.toml`中读取
 
 参考模板 [app/config/config_example.toml](https://github.com/Chasing66/smzdm_bot/blob/main/app/config/config_example.toml)
 
@@ -75,24 +75,26 @@ TG_BOT_TOKEN = ""
 TG_USER_ID = ""
 ```
 
-### 2.2 Git Action 运行
+## 3. 使用
 
-GitHub Action 仅支持`env`配置方式, **务必自行更改为随机时间**
+### 3.1 青龙面板
 
-1. Fork[此仓库项目](https://github.com/Chasing66/smzdm_bot)>, 欢迎`star`~
-2. 修改 `.github/workflows/checkin.yml`里的下面部分, 取消`schedule`两行的注释，自行设定时间
-
-```yaml
-# UTC时间，对应Beijing时间 9：30
-schedule:
-  - cron: "30 1 * * *"
+```
+ql repo https://github.com/Chasing66/smzdm_bot "smzdm_ql.py"
 ```
 
-3. 配置参考 [2.1.1 从环境变量中读取配置](#211-从环境变量中读取配置)
+默认情况下从环境变量读取配置,仅支持单用户.
 
-### 2.3 本地直接运行(支持多用户)
+如果需要支持多用户，推荐使用`config.toml`, 配置参考 [2.1 从`config.toml`中读取](#21-从configtoml中读取).
+配置完成后, 拷贝`config.toml`到青龙容器内的`/ql/data/repo/Chasing66_smzdm_bot/app/config`
 
-按照需求配置，参考 [2.1.2 从 config.toml 中读取](#212-从-config.toml-中读取)
+```
+docker cp config.toml <你的青龙容器名称>:/ql/data/repo/Chasing66_smzdm_bot/app/config
+```
+
+### 3.2 本地直接运行
+
+克隆本项目到本地, 按照需求配置，配置参考 [2.1 从`config.toml`中读取](#21-从configtoml中读取)
 
 ```bash
 python3 -m venv .venv
@@ -102,7 +104,9 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### 2.4 本地 docker-compose 运行
+### 3.3 本地 docker-compose 运行
+
+配置参考[2.1 从`config.toml`中读取](#21-从configtoml中读取)
 
 修改 [docker-compose.yaml](https://github.com/Chasing66/smzdm_bot/blob/main/docker-compose.yml), 将`app/config/config.toml`mout 到容器内`/smzdm_bot/config/config.toml`
 
@@ -122,24 +126,26 @@ services:
       - ./app/config/config.toml:/smzdm_bot/config/config.toml
 ```
 
-### 2.5 青龙面板
+### 3.4 Git Action 运行
 
+> GitHub Action 禁止对于 Action 资源的滥用，请尽可能使用其他方式
+
+GitHub Action 仅支持`env`配置方式, **务必自行更改为随机时间**
+
+1. Fork[此仓库项目](https://github.com/Chasing66/smzdm_bot)>, 欢迎`star`~
+2. 修改 `.github/workflows/checkin.yml`里的下面部分, 取消`schedule`两行的注释，自行设定时间
+
+```yaml
+# UTC时间，对应Beijing时间 9：30
+schedule:
+  - cron: "30 1 * * *"
 ```
-ql repo https://github.com/Chasing66/smzdm_bot "smzdm_ql.py"
-```
 
-默认情况下从环境变量读取配置,仅支持单用户.
+3. 配置参考 [2.1.1 从环境变量中读取配置](#21-从环境变量中读取配置)
 
-如果需要支持多用户，推荐使用`config.toml`, 配置方法如上所述.
-配置完成后, 拷贝`config.toml`到青龙容器内的`/ql/data/repo/Chasing66_smzdm_bot/app/config`
+## 4. 其它
 
-```
-docker cp config.toml <你的青龙容器名称>:/ql/data/repo/Chasing66_smzdm_bot/app/config
-```
-
-## 3. 其它
-
-### 3.1 手机抓包
+### 4.1 手机抓包
 
 > 抓包有一定门槛，请酌情尝试.
 
@@ -150,6 +156,6 @@ docker cp config.toml <你的青龙容器名称>:/ql/data/repo/Chasing66_smzdm_b
 3. 过滤域名为`user-api.smzdm.com`的 post 请求
 4. 点击右上角分享，复制 cURL，转换 curl 请求为 python 格式，[方法](https://curlconverter.com/)
 
-## Stargazers over time
+## 5. Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/Chasing66/smzdm_bot.svg)](https://starchart.cc/Chasing66/smzdm_bot)
