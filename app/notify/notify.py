@@ -17,71 +17,70 @@ class NotifyBot(object):
         self.tg_bot()
 
     def push_plus(self, template="html"):
-        try:
-            if self.kwargs.get("PUSH_PLUS_TOKEN", None):
-                PUSH_PLUS_TOKEN = self.kwargs.get("PUSH_PLUS_TOKEN")
-            else:
-                logger.info("⚠️ PUSH_PLUS_TOKEN not set, skip PushPlus nofitication")
-                return
+        if not self.kwargs.get("PUSH_PLUS_TOKEN", None):
+            logger.warning("⚠️ PUSH_PLUS_TOKEN not set, skip PushPlus nofitication")
+            return
+        PUSH_PLUS_TOKEN = self.kwargs.get("PUSH_PLUS_TOKEN")
 
-            url = "https://www.pushplus.plus/send"
-            body = {
-                "token": PUSH_PLUS_TOKEN,
-                "title": self.title,
-                "content": self.content,
-                "template": template,
-            }
-            data = json.dumps(body).encode(encoding="utf-8")
-            headers = {"Content-Type": "application/json"}
+        url = "https://www.pushplus.plus/send"
+        body = {
+            "token": PUSH_PLUS_TOKEN,
+            "title": self.title,
+            "content": self.content,
+            "template": template,
+        }
+        data = json.dumps(body).encode(encoding="utf-8")
+        headers = {"Content-Type": "application/json"}
+        try:
             resp = requests.post(url, data=data, headers=headers)
-            if resp.status_code == 200:
+            if resp.ok:
                 logger.info("✅ Push Plus notified")
-            return resp.json()
+            else:
+                logger.warning("Fail to notify Push Plus")
         except Exception as e:
             logger.error(e)
 
     def server_chain(self):
+        if not self.kwargs.get("SC_KEY", None):
+            logger.warning("⚠️ SC_KEY not set, skip ServerChain notification")
+            return
+        SC_KEY = self.kwargs.get("SC_KEY")
+        url = f"http://sc.ftqq.com/{SC_KEY}.send"
+        data = {"text": self.title, "desp": self.content}
         try:
-            if self.kwargs.get("SC_KEY", None):
-                SC_KEY = self.kwargs.get("SC_KEY")
-            else:
-                logger.info("⚠️ SC_KEY not set, skip ServerChain notification")
-                return
-
-            url = f"http://sc.ftqq.com/{SC_KEY}.send"
-
-            data = {"text": self.title, "desp": self.content}
             resp = requests.post(url, data=data)
-            if resp.status_code == 200:
+            if resp.ok:
                 logger.info("✅ Server Chain notified")
-            return resp.json()
+            else:
+                logger.warning("Fail to notify Server Chain")
         except Exception as e:
             logger.error(e)
 
     def tg_bot(self):
+        if not self.kwargs.get("TG_BOT_TOKEN", None) or not self.kwargs.get(
+            "TG_USER_ID", None
+        ):
+            logger.warning("⚠️ Skip TelegramBot notification")
+            return
+        TG_BOT_TOKEN = self.kwargs.get("TG_BOT_TOKEN")
+        TG_USER_ID = self.kwargs.get("TG_USER_ID")
+        if self.kwargs.get("TG_BOT_API"):
+            url = urljoin(
+                self.kwargs.get("TG_BOT_API"), f"/bot{TG_BOT_TOKEN}/sendMessage"
+            )
+        else:
+            url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        params = {
+            "chat_id": str(TG_USER_ID),
+            "text": f"{self.title}\n{self.content}",
+            "disable_web_page_preview": "true",
+        }
         try:
-            if self.kwargs.get("TG_BOT_TOKEN", None) and self.kwargs.get(
-                "TG_USER_ID", None
-            ):
-                TG_BOT_TOKEN = self.kwargs.get("TG_BOT_TOKEN")
-                TG_USER_ID = self.kwargs.get("TG_USER_ID")
-            else:
-                logger.info(
-                    "⚠️ TG_BOT_TOKEN & TG_USER_ID not set, skip TelegramBot notification"
-                )
-                return
-
-            TG_BOT_API = self.kwargs.get("TG_BOT_API", "https://api.telegram.org/")
-            url = urljoin(TG_BOT_API, f"/bot{TG_BOT_TOKEN}/sendMessage")
-            headers = {"Content-Type": "application/x-www-form-urlencoded"}
-            params = {
-                "chat_id": str(TG_USER_ID),
-                "text": f"{self.title}\n{self.content}",
-                "disable_web_page_preview": "true",
-            }
             resp = requests.post(url=url, headers=headers, params=params)
-            if resp.status_code == 200:
+            if resp.ok:
                 logger.info("✅ Telegram Bot notified")
-            return resp.json()
+            else:
+                logger.warning("Fail to notify TelegramBot")
         except Exception as e:
             logger.error(e)

@@ -26,7 +26,7 @@
 
 ## 2. 配置
 
-支持两种读取配置的方法，从环境变量或者`config.toml`中读取
+支持两种读取配置的方法，从`环境变量`或者`config.toml`中读取
 
 ### 2.1 从环境变量中读取配置
 
@@ -51,7 +51,7 @@ SCH_HOUR=
 SCH_MINUTE=
 ```
 
-### 2.1 从`config.toml`中读取
+### 2.2 从`config.toml`中读取
 
 参考模板 [app/config/config_example.toml](https://github.com/Chasing66/smzdm_bot/blob/main/app/config/config_example.toml)
 
@@ -85,7 +85,7 @@ ql repo https://github.com/Chasing66/smzdm_bot "smzdm_ql.py"
 
 默认情况下从环境变量读取配置,仅支持单用户.
 
-如果需要支持多用户，推荐使用`config.toml`, 配置参考 [2.1 从`config.toml`中读取](#21-从configtoml中读取).
+如果需要支持多用户，推荐使用`config.toml`, 配置参考 [2.2 从`config.toml`中读取](#22-从configtoml中读取).
 配置完成后, 拷贝`config.toml`到青龙容器内的`/ql/data/repo/Chasing66_smzdm_bot/app/config`
 
 ```
@@ -94,7 +94,7 @@ docker cp config.toml <你的青龙容器名称>:/ql/data/repo/Chasing66_smzdm_b
 
 ### 3.2 本地直接运行
 
-克隆本项目到本地, 按照需求配置，配置参考 [2.1 从`config.toml`中读取](#21-从configtoml中读取)
+克隆本项目到本地, 按照需求配置，配置参考 [2.2 从`config.toml`中读取](#22-从configtoml中读取)
 
 ```bash
 python3 -m venv .venv
@@ -106,7 +106,7 @@ python main.py
 
 ### 3.3 本地 docker-compose 运行
 
-配置参考[2.1 从`config.toml`中读取](#21-从configtoml中读取)
+配置参考[2.2 从`config.toml`中读取](#22-从configtoml中读取)
 
 修改 [docker-compose.yaml](https://github.com/Chasing66/smzdm_bot/blob/main/docker-compose.yml), 将`app/config/config.toml`mout 到容器内`/smzdm_bot/config/config.toml`
 
