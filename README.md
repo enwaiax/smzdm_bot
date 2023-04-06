@@ -145,15 +145,16 @@ schedule:
 
 ### 4.1 手机抓包
 
-> 抓包有一定门槛，请酌情尝试.
+> 抓包有一定门槛，请自行尝试! 如果实在解决不了，请我喝瓶可乐可以帮忙
 
 抓包工具可使用 HttpCanary，教程参考[HttpCanary 抓包](https://juejin.cn/post/7177682063699968061)
 
 1. 按照上述教程配置好 HttpCanary
 2. 开始抓包，并打开什么值得买 APP
-3. 过滤域名为`user-api.smzdm.com`的 post 请求
-4. 点击右上角分享，复制 cURL，转换 curl 请求为 python 格式，[方法](https://curlconverter.com/)
-5. 填入转换后的`Cookies`和`sk`两个值
+3. 过滤`https://user-api.smzdm.com/checkin`的`post`请求并查看
+4. 点击右上角分享，分享 cURL，复制保存该命令
+5. 将复制的 curl 命令转换为 python 格式，[方法](https://curlconverter.com/)
+6. 填入转换后的`Cookies`和`sk`. `Cookies`在`headers`里，`sk`在`data`里
 
 ## 5. Stargazers over time
 
