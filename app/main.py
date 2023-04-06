@@ -78,11 +78,12 @@ class SmzdmBot(object):
             "captcha": "",
             "f": self.cookies_dict["device_smzdm"],
             "v": self.cookies_dict["device_smzdm_version"],
-            "sk": self.conf_kwargs.get("SK"),
             "touchstone_event": "",
             "time": self._timestamp() * 1000,
             "token": self.cookies_dict["sess"],
         }
+        if self.conf_kwargs.get("SK"):
+            data.update({"sk": self.conf_kwargs.get("SK")})
         return data
 
     def _gen_sign(self, data: dict):

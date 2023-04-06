@@ -18,6 +18,7 @@
 - 2023-03-01, 支持青龙面板且支持多账号
 - 2023-03-01, 仅需要`ANDROID_COOKIE`和`SK`两个变量，自动生成`USER_AGENT`和`TOKEN`, 引入随机休眠，减小被封概率
 - 2023-03-02, 新增每日抽奖，参考 hex-ci 的[思路](https://github.com/hex-ci/smzdm_script/blob/main/smzdm_lottery.js)
+- 2023-04-06, 仅需要`ANDROID_COOKIE`一个变量, `SK`改为可选变量. 如果能够通过抓包抓到，最好填上.
 
 ## 1. 实现功能
 
@@ -35,7 +36,7 @@
 ```conf
 # Cookie
 ANDROID_COOKIE = ""
-SK = ""
+SK = "" # 可选，如果抓包抓到最好设置
 
 # Notification
 PUSH_PLUS_TOKEN = ""
@@ -58,19 +59,20 @@ SCH_MINUTE=
 ```toml
 [user.A]
 ANDROID_COOKIE = ""
-SK = ""
+SK = "" # 可选，如果抓包抓到最好设置
 
 [user.B]
 # Disable userB的签到. 不配置此参数默认启用该用户
 Disable = true
 ANDROID_COOKIE = ""
-SK = ""
+SK = "" # 可选，如果抓包抓到最好设置
 
 [notify]
 PUSH_PLUS_TOKEN = ""
 SC_KEY = ""
 TG_BOT_TOKEN = ""
 TG_USER_ID = ""
+TG_BOT_API = ""
 ```
 
 ## 3. 使用
@@ -154,7 +156,7 @@ schedule:
 3. 过滤`https://user-api.smzdm.com/checkin`的`post`请求并查看
 4. 点击右上角分享，分享 cURL，复制保存该命令
 5. 将复制的 curl 命令转换为 python 格式，[方法](https://curlconverter.com/)
-6. 填入转换后的`Cookies`和`sk`. `Cookies`在`headers`里，`sk`在`data`里
+6. 填入转换后的`Cookies`和`sk`. `Cookies`在`headers`里，`sk`在`data`里, `sk`是可选项
 
 ## 5. Stargazers over time
 

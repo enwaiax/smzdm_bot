@@ -1,18 +1,12 @@
 [user.A]
-USER_AGENT = ""
 ANDROID_COOKIE = ""
-SK = ""
-TOKEN = ""
 
 [user.B]
-USER_AGENT = ""
 ANDROID_COOKIE = ""
-SK = ""
-TOKEN = ""
-
 
 [notify]
 PUSH_PLUS_TOKEN = ""
 SC_KEY = ""
 TG_BOT_TOKEN = ""
 TG_USER_ID = ""
+TG_BOT_API = ""
