@@ -18,13 +18,13 @@
 - 2023-03-01, 支持青龙面板且支持多账号
 - 2023-03-01, 仅需要`ANDROID_COOKIE`和`SK`两个变量，自动生成`USER_AGENT`和`TOKEN`, 引入随机休眠，减小被封概率
 - 2023-03-02, 新增每日抽奖，参考 hex-ci 的[思路](https://github.com/hex-ci/smzdm_script/blob/main/smzdm_lottery.js)
-- 2023-04-06, 仅需要`ANDROID_COOKIE`一个变量, `SK`改为可选变量. 如果能够通过抓包抓到，最好填上.
+- 2023-04-06, 新增企业微信BOT-WEBHOOK通知推送方式，仅需要`ANDROID_COOKIE`一个变量, `SK`改为可选变量. 如果能够通过抓包抓到，最好填上.
 
 ## 1. 实现功能
 
 - 每日签到, 额外奖励，随机奖励
 - 多种运行方式: GitHub Action, 本地运行，docker， 青龙面板
-- 多种通知方式: `pushplus`, `server酱`, `telegram bot`(支持自定义反代`Telegram Bot API`. [搭建教程](https://anerg.com/2022/07/25/reverse-proxy-telegram-bot-api-using-cloudflare-worker.html))
+- 多种通知方式: `pushplus`, `server酱`,`企业微信bot-webhook`, `telegram bot`(支持自定义反代`Telegram Bot API`. [搭建教程](https://anerg.com/2022/07/25/reverse-proxy-telegram-bot-api-using-cloudflare-worker.html))
 - 支持多账号(需配置`config.toml`)
 
 ## 2. 配置
@@ -41,6 +41,7 @@ SK = "" # 可选，如果抓包抓到最好设置
 # Notification
 PUSH_PLUS_TOKEN = ""
 SC_KEY = ""
+WECOM_BOT_WEBHOOK = ""
 TG_BOT_TOKEN = ""
 TG_USER_ID = ""
 
@@ -70,6 +71,7 @@ SK = "" # 可选，如果抓包抓到最好设置
 [notify]
 PUSH_PLUS_TOKEN = ""
 SC_KEY = ""
+WECOM_BOT_WEBHOOK = ""
 TG_BOT_TOKEN = ""
 TG_USER_ID = ""
 TG_BOT_API = ""

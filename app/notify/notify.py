@@ -14,6 +14,7 @@ class NotifyBot(object):
 
         self.push_plus()
         self.server_chain()
+        self.wecom()
         self.tg_bot()
 
     def push_plus(self, template="html"):
@@ -56,6 +57,26 @@ class NotifyBot(object):
         except Exception as e:
             logger.error(e)
 
+     def wecom(self):
+        if not self.kwargs.get("WECOM_BOT_WEBHOOK", None):
+            logger.warning("⚠️ WECOM_BOT_WEBHOOK not set, skip WeCom notification")
+            return
+        WECOM_BOT_WEBHOOK = self.kwargs.get("WECOM_BOT_WEBHOOK")
+        message = {
+            "msgtype": "text",
+            "text": {
+            "content": f"{self.title}\n{self.content}"
+            }
+        }
+        try:
+            resp = requests.post(WECOM_BOT_WEBHOOK, data=json.dumps(message))
+            if resp.ok:
+                logger.info("✅ WeCom notified")
+            else:
+                logger.warning("Fail to notify WeCom")
+        except Exception as e:
+            logger.error(e)
+            
     def tg_bot(self):
         if not self.kwargs.get("TG_BOT_TOKEN", None) or not self.kwargs.get(
             "TG_USER_ID", None
