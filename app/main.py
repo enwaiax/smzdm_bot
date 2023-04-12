@@ -248,6 +248,8 @@ def load_conf():
 
 def main():
     conf_kwargs = load_conf()
+    logger.info("conf_kwargs", conf_kwargs)
+    logger.info("conf_kwargs*ANDROID_COOKIE", conf_kwargs["ANDROID_COOKIE"])
     msg = ""
     if conf_kwargs.get("toml_conf"):
         for i in conf_kwargs["user"]:
