@@ -248,12 +248,13 @@ def load_conf():
 
 def main():
     conf_kwargs = load_conf()
-    print("conf_kwargs", conf_kwargs)
-    print("conf_kwargs*ANDROID_COOKIE", conf_kwargs["ANDROID_COOKIE"])
-    logger.warning("conf_kwargs", conf_kwargs)
-    logger.warning("conf_kwargs*ANDROID_COOKIE", conf_kwargs["ANDROID_COOKIE"])
+#     print("conf_kwargs", conf_kwargs)
+#     print("conf_kwargs*ANDROID_COOKIE", conf_kwargs["ANDROID_COOKIE"])
+    logger.warning("conf_kwargs")
+    logger.warning("conf_kwargs*ANDROID_COOKIE")
     msg = ""
     if conf_kwargs.get("toml_conf"):
+        logger.info("test 1111111111111111111111")
         for i in conf_kwargs["user"]:
             if conf_kwargs["user"][i].get("Disable"):
                 logger.info(f"===== Skip task for user: {i} =====")
@@ -273,6 +274,7 @@ def main():
             return
         NotifyBot(content=msg, **conf_kwargs["notify"])
     else:
+        logger.info("test 222222222222222222222222")
         bot = SmzdmBot(conf_kwargs)
         msg = bot.checkin()
         bot.all_reward()
