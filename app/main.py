@@ -237,6 +237,7 @@ def load_conf():
             "TG_USER_ID": os.environ.get("TG_USER_ID", None),
             "TG_BOT_API": os.environ.get("TG_BOT_API", None),
         }
+        logger.info(conf_kwargs)
         conf_kwargs.update({"env_conf": True})
     else:
         logger.info("Please set cookies first")
