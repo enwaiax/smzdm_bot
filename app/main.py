@@ -274,7 +274,7 @@ def main():
             return
         NotifyBot(content=msg, **conf_kwargs["notify"])
     else:
-        logger.info("test 222222222222222222222222")
+        logger.info("test 2222222222222333333333322222222222")
         bot = SmzdmBot(conf_kwargs)
         msg = bot.checkin()
         bot.all_reward()
