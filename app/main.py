@@ -229,7 +229,7 @@ def load_conf():
     elif os.environ.get("ANDROID_COOKIE", None):
         logger.info("Get configration from env")
         conf_kwargs = {
-            "SK": os.environ.get("SK"),
+            "SK": os.environ.get("SK",None),
             "ANDROID_COOKIE": os.environ.get("ANDROID_COOKIE"),
             "PUSH_PLUS_TOKEN": os.environ.get("PUSH_PLUS_TOKEN", None),
             "SC_KEY": os.environ.get("SC_KEY", None),
