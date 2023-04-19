@@ -1,6 +1,14 @@
 name: Build image
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "!README.md"
+  pull_request:
+    branches:
+      - "main"      
 
 jobs:
   buildx:
