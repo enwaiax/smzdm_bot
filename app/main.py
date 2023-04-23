@@ -9,7 +9,7 @@ from utils.smzdm_bot import SmzdmBot
 from utils.smzdm_tasks import SmzdmTasks
 
 CURRENT_PATH = Path(__file__).parent.resolve()
-CONFIG_PATH = Path(CURRENT_PATH, "config")
+CONFIG_FILE = Path(CURRENT_PATH, "config/config.toml")
 
 logger.add("smzdm.log", retention="10 days")
 
@@ -17,9 +17,9 @@ logger.add("smzdm.log", retention="10 days")
 def load_conf():
     conf_kwargs = {}
 
-    if Path.exists(Path(CONFIG_PATH, "config.toml")):
+    if Path.exists(CONFIG_FILE):
         logger.info("Get configration from config.toml")
-        conf_kwargs = TomlHelper(Path(CONFIG_PATH, "config.toml")).read()
+        conf_kwargs = TomlHelper(CONFIG_FILE).read()
         conf_kwargs.update({"toml_conf": True})
     elif os.environ.get("ANDROID_COOKIE", None):
         logger.info("Get configration from env")
@@ -55,7 +55,7 @@ def main():
                 msg += tasks.vip_info()
                 msg += tasks.all_reward()
                 tasks.extra_reward()
-                tasks.lottery()
+                msg += tasks.lottery()
             except Exception as e:
                 logger.error(e)
                 continue
@@ -70,7 +70,7 @@ def main():
         msg += tasks.vip_info()
         msg += tasks.all_reward()
         tasks.extra_reward()
-        tasks.lottery()
+        msg += tasks.lottery()
         NotifyBot(content=msg, **conf_kwargs)
     if msg is None or "Fail to login in" in msg:
         logger.error("Fail the Github action job")

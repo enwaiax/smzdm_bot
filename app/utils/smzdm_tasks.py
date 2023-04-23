@@ -51,7 +51,7 @@ class SmzdmTasks:
             tb.add_row([rank, exp_current_level, exp_level_expire])
             logger.info(f"\n{tb}")
             msg = f"""
-            ⭐值会员等级: {rank}
+            🏅值会员等级: {rank}
             🏅值会员经验: {exp_current_level}
             🏅值会员有效期: {exp_level_expire}"""
         return msg
@@ -71,49 +71,49 @@ class SmzdmTasks:
             logger.info("No reward today")
         return msg
 
-    def lottery(self):
-        url = "https://m.smzdm.com/zhuanti/life/choujiang/"
-        headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "zh-cn",
-            "Connection": "keep-alive",
-            "Host": "m.smzdm.com",
-            "User-Agent": self.bot._user_agent(),
-            "Cookie": self.bot.cookies,
-        }
-        resp = self.bot.session.get(url, headers=headers)
+    def _get_lottery_chance(self, params):
+        headers = self.bot._web_headers()
+        url = "https://zhiyou.smzdm.com/user/lottery/jsonp_get_current"
+        resp = self.bot.session.get(url, headers=headers, params=params)
         try:
-            re.findall('class="chance-surplus".*?(\d)', resp.text)[0]
-        except IndexError:
-            logger.warning("No lottery chance left")
-            return
-        try:
-            lottery_activity_id = re.findall(
-                'name="lottery_activity_id" value="(.*?)"', resp.text
-            )[0]
+            result = json.loads(re.findall("({.*})", resp.text)[0])
+            if result["remain_free_lottery_count"] < 1:
+                logger.warning("No lottery chance left")
+                return False
+            else:
+                return True
         except Exception:
-            lottery_activity_id = "A6X1veWE2O"
-        timestamp = self.bot._timestamp()
-        headers = {
-            "Accept": "*/*",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "zh-cn",
-            "Connection": "keep-alive",
-            "Host": "zhiyou.smzdm.com",
-            "Referer": "https://m.smzdm.com/zhuanti/life/choujiang/",
-            "User-Agent": self.bot._user_agent(),
-            "Cookie": self.bot.cookies,
-        }
+            logger.warning("No lottery chance left")
+            return False
 
-        url = f"https://zhiyou.smzdm.com/user/lottery/jsonp_draw?callback=jQuery34109305207178886287_{timestamp}&active_id={lottery_activity_id}&_={timestamp}"
-
-        resp = self.session.get(url, headers=headers)
+    def _draw_lottery(self, params):
+        msg = """
+            🏅没有抽奖机会
+        """
+        headers = self.bot._web_headers()
+        url = "https://zhiyou.smzdm.com/user/lottery/jsonp_draw"
+        resp = self.bot.session.get(url, headers=headers, params=params)
         try:
-            result = json.loads(re.findall(".*?\((.*?)\)", resp.text)[0])
-            logger.info(result["error_msg"])
-        except Exception as e:
-            logger.error(e)
+            result = json.loads(re.findall("({.*})", resp.text)[0])
+            msg = f"""
+            🏅{result["error_msg"]}"""
+        except Exception:
+            logger.warning("Fail to parser lottery result")
+        return msg
+
+    def lottery(self):
+        msg = """
+            🏅没有抽奖机会
+        """
+        timestamp = self.bot._timestamp()
+        params = {
+            "callback": "jQuery34100013381784658652585_{timestamp}",
+            "active_id": "A6X1veWE2O",
+            "_": timestamp,
+        }
+        if self._get_lottery_chance(params):
+            msg = self._draw_lottery(params)
+        return msg
 
     def extra_reward(self):
         continue_checkin_reward_show = False

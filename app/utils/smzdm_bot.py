@@ -19,7 +19,7 @@ class SmzdmBot:
         self.session.headers.update(self._headers())
 
     def _timestamp(self):
-        sleep = randint(1, 7)
+        sleep = randint(1, 5)
         time.sleep(sleep)
         timestamp = int(time.time())
         return timestamp
@@ -49,6 +49,17 @@ class SmzdmBot:
                 "Request_Key": f"{randint(10000000, 100000000) * 10000000000 + self._timestamp()}",
                 "Cookie": self.cookies,
             },
+        }
+        return headers
+
+    def _web_headers(self):
+        headers = {
+            "Accept": "*/*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive",
+            "Cookie": self.cookies,
+            "Referer": "https://m.smzdm.com/",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.48",
         }
         return headers
 
