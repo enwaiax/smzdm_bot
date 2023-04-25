@@ -63,7 +63,16 @@ class SmzdmBot:
         }
         return headers
 
-    def _sign_data(self):
+    def _sign_data(self, data):
+        sign_str = (
+            "&".join(f"{key}={value}" for key, value in sorted(data.items()) if value)
+            + f"&key={self.SIGN_KEY}"
+        )
+        sign = hashlib.md5(sign_str.encode()).hexdigest().upper()
+        data.update({"sign": sign})
+        return data
+
+    def data(self, extra_data=None):
         data = {
             "weixin": "1",
             "captcha": "",
@@ -75,17 +84,13 @@ class SmzdmBot:
         }
         if self.sk:
             data.update({"sk": self.sk})
+        if extra_data:
+            data.update(extra_data)
+        return self._sign_data(data)
 
-        sign_str = (
-            "&".join(f"{key}={value}" for key, value in sorted(data.items()) if value)
-            + f"&key={self.SIGN_KEY}"
-        )
-        sign = hashlib.md5(sign_str.encode()).hexdigest().upper()
-        data.update({"sign": sign})
-        return data
-
-    def data(self):
-        return self._sign_data()
+    def request(self, method, url, params=None, extra_data=None):
+        data = self.data(extra_data)
+        return self.session.request(method, url, params=params, data=data)
 
 
 if __name__ == "__main__":

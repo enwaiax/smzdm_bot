@@ -12,7 +12,7 @@ class SmzdmTasks:
 
     def checkin(self):
         url = "https://user-api.smzdm.com/checkin"
-        resp = self.bot.session.post(url, self.bot.data())
+        resp = self.bot.request("POST", url)
         if resp.status_code == 200 and int(resp.json()["error_code"]) == 0:
             resp_data = resp.json()["data"]
             checkin_num = resp_data["daily_num"]
@@ -40,7 +40,7 @@ class SmzdmTasks:
     def vip_info(self):
         msg = ""
         url = "https://user-api.smzdm.com/vip"
-        resp = self.bot.session.post(url, self.bot.data())
+        resp = self.bot.request("POST", url)
         if resp.status_code == 200 and int(resp.json()["error_code"]) == 0:
             resp_data = resp.json()["data"]
             rank = resp_data["vip"]["exp_level"]
@@ -59,7 +59,7 @@ class SmzdmTasks:
     def all_reward(self):
         msg = ""
         url = "https://user-api.smzdm.com/checkin/all_reward"
-        resp = self.bot.session.post(url, self.bot.data())
+        resp = self.bot.request("POST", url)
         if resp.status_code == 200 and int(resp.json()["error_code"]) == 0:
             resp_data = resp.json()["data"]
             if resp_data["normal_reward"]["gift"]["title"]:
@@ -130,11 +130,11 @@ class SmzdmTasks:
         if not continue_checkin_reward_show:
             return
         url = "https://user-api.smzdm.com/checkin/extra_reward"
-        resp = self.bot.session.post(url, self.bot.data())
+        resp = self.bot.request("POST", url)
         logger.info(resp.json()["data"])
 
     def _show_view_v2(self):
         url = "https://user-api.smzdm.com/checkin/show_view_v2"
-        resp = self.bot.session.post(url, self.bot.data())
+        resp = self.bot.request("POST", url)
         if resp.status_code == 200 and int(resp.json()["error_code"]) == 0:
             return resp.json()
