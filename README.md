@@ -83,7 +83,7 @@ TG_BOT_API = ""
 ### 3.1 青龙面板
 
 ```
-ql repo https://github.com/Chasing66/smzdm_bot "smzdm_ql.py"
+ql repo https://github.com/Chasing66/smzdm_bot.git "smzdm_ql.py"
 ```
 
 默认情况下从环境变量读取配置,仅支持单用户.
