@@ -9,7 +9,7 @@
 
 ## 更新日志
 
-- 2022-12-08, 签到失败，浏览器端签到需要滑动验证码认证
+- 2022-12-08, 签到失败，浏览器端签到需要滑动验证码认证.
 - 2023-01-11, 更改`User-Agent`为`iPhone`后可`bypass`滑块认证
 - 2023-01-14, 登录认证失败, 签到失效
 - 2023-02-18, 通过安卓端验证登录，感谢 [jzksnsjswkw/smzdm-app](https://github.com/jzksnsjswkw/smzdm-app) 的思路. 旧版代码查看 [old](https://github.com/Chasing66/smzdm_bot/tree/old) 分支
