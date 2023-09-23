@@ -19,6 +19,7 @@
 - 2023-03-01, 仅需要`ANDROID_COOKIE`和`SK`两个变量，自动生成`USER_AGENT`和`TOKEN`, 引入随机休眠，减小被封概率
 - 2023-03-02, 新增每日抽奖，参考 hex-ci 的[思路](https://github.com/hex-ci/smzdm_script/blob/main/smzdm_lottery.js)
 - 2023-04-06, 新增企业微信BOT-WEBHOOK通知推送方式，仅需要`ANDROID_COOKIE`一个变量, `SK`改为可选变量. 如果能够通过抓包抓到，最好填上.
+- 2023-04-23，更新抽奖功能
 
 ## 1. 实现功能
 
@@ -82,7 +83,7 @@ TG_BOT_API = ""
 ### 3.1 青龙面板
 
 ```
-ql repo https://github.com/Chasing66/smzdm_bot "smzdm_ql.py"
+ql repo https://github.com/Chasing66/smzdm_bot.git "smzdm_ql.py"
 ```
 
 默认情况下从环境变量读取配置,仅支持单用户.
