@@ -25,6 +25,9 @@ jobs:
         SK: ${{ secrets.SK }}
         PUSH_PLUS_TOKEN: ${{ secrets.PUSH_PLUS_TOKEN }}
         SC_KEY: ${{ secrets.SC_KEY }}
+        WECOM_BOT_AGENTID: ${{ secrets.WECOM_BOT_AGENTID }}
+        WECOM_BOT_CORPID: ${{ secrets.WECOM_BOT_CORPID }}
+        WECOM_BOT_SECRET: ${{ secrets.WECOM_BOT_SECRET }}
         TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
         TG_USER_ID: ${{ secrets.TG_USER_ID }}
         TG_BOT_API: ${{ secrets.TG_BOT_API }}
