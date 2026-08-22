@@ -1,6 +1,8 @@
-version: "3.9"
 services:
   smzdm_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: enwaiax/smzdm_bot
     container_name: smzdm_bot
     restart: on-failure
@@ -11,5 +13,3 @@ services:
         max-file: "1"
     env_file:
       - .env
-    # volumes:
-    #   - ./app/config/config.toml:/smzdm_bot/config/config.toml

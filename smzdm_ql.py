@@ -1,23 +1,31 @@
 """
-什么值得买自动签到脚本
-项目地址: https://github.com/Chasing66/smzdm_bot
+SMZDM QingLong entrypoint
+Repository: https://github.com/enwaiax/smzdm_bot
 0 9 * * * smzdm_ql.py
 const $ = new Env("什么值得买签到");
 """
 
-import os
+import subprocess
+import sys
 from pathlib import Path
 
-ql_repo_dir = Path("/ql/data/repo/")
-repo_name = "Chasing66_smzdm_bot"
-repo_dir = Path(ql_repo_dir, repo_name)
+REPO_DIR = Path(__file__).resolve().parent
 
 
-def main():
-    os.system(
-        f"cd {str(repo_dir)}; pip3 install -qr app/requirements.txt; python3 app/main.py"
+def main() -> int:
+    """Install the checked-out package and run it once."""
+    subprocess.run(
+        [sys.executable, "-m", "pip", "install", "--quiet", "--editable", "."],
+        cwd=REPO_DIR,
+        check=True,
     )
+    completed = subprocess.run(
+        [sys.executable, "-m", "smzdm_bot", "run"],
+        cwd=REPO_DIR,
+        check=False,
+    )
+    return completed.returncode
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

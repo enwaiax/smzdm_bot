@@ -1,0 +1,78 @@
+[project]
+name = "smzdm-bot"
+version = "1.0.0"
+description = "Typed SMZDM automation client with a Typer CLI"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+keywords = [
+    "smzdm",
+    "checkin",
+    "bot",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "apscheduler>=3.11.3",
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+    "pycryptodome>=3.23.0",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.15.0",
+    "rich>=15.0.0",
+    "typer>=0.27.1",
+]
+
+[[project.authors]]
+name = "enwaiax"
+email = "enwaiax@users.noreply.github.com"
+
+[project.scripts]
+smzdm-bot = "smzdm_bot.cli:cli_entry"
+smzdm-scheduler = "smzdm_bot.cli:scheduler_entry"
+
+[project.urls]
+Homepage = "https://github.com/enwaiax/smzdm_bot"
+Repository = "https://github.com/enwaiax/smzdm_bot"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+source-include = ["tests/**"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "N",
+    "UP",
+    "B",
+    "SIM",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["smzdm_bot"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.4",
+]
