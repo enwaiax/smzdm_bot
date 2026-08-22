@@ -1,6 +1,7 @@
 """Data models for SMZDM Bot."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -9,39 +10,39 @@ class CheckinResult(BaseModel):
     """Check-in result with API field mapping."""
 
     consecutive_days: int = Field(alias="daily_num", default=0)
-    gold: int = Field(alias="cgold", default=0)
-    points: int = Field(alias="cpoints", default=0)
-    experience: int = Field(alias="cexperience", default=0)
-    level: int = Field(alias="rank", default=0)
-    cards: int = Field(default=0)
+    gold_earned: int = Field(alias="cgold", default=0)
+    points_earned: int = Field(alias="cpoints", default=0)
+    experience_earned: int = Field(alias="cexperience", default=0)
+    account_rank: int = Field(alias="rank", default=0)
+    makeup_cards: int = Field(alias="cards", default=0)
 
     model_config = {"populate_by_name": True}
 
     def to_message(self) -> str:
         return (
             f"⭐ 签到成功 第{self.consecutive_days}天\n"
-            f"🪙 金币: +{self.gold}\n"
-            f"💎 积分: +{self.points}\n"
-            f"📈 经验: +{self.experience}\n"
-            f"🏆 等级: {self.level}\n"
-            f"🎫 补签卡: {self.cards}"
+            f"🪙 金币: +{self.gold_earned}\n"
+            f"💎 积分: +{self.points_earned}\n"
+            f"📈 经验: +{self.experience_earned}\n"
+            f"🏆 等级: {self.account_rank}\n"
+            f"🎫 补签卡: {self.makeup_cards}"
         )
 
 
 class VipInfo(BaseModel):
     """VIP membership info."""
 
-    level: int = Field(alias="exp_level", default=0)
-    experience: int = Field(alias="exp_current_level", default=0)
-    expire_date: str = Field(alias="exp_level_expire", default="")
+    membership_level: int = Field(alias="exp_level", default=0)
+    level_experience: int = Field(alias="exp_current_level", default=0)
+    expiration_date: str = Field(alias="exp_level_expire", default="")
 
     model_config = {"populate_by_name": True}
 
     def to_message(self) -> str:
         return (
-            f"👑 值会员: V{self.level}\n"
-            f"✨ 经验: {self.experience}\n"
-            f"📅 有效期: {self.expire_date}"
+            f"👑 值会员: V{self.membership_level}\n"
+            f"✨ 经验: {self.level_experience}\n"
+            f"📅 有效期: {self.expiration_date}"
         )
 
 
@@ -75,8 +76,58 @@ class LotteryResult:
         return f"🎰 {self.message}"
 
 
+class TaskOutcome(StrEnum):
+    """Outcome of one optional business task."""
+
+    COMPLETED = "completed"
+    SKIPPED = "skipped"
+    FAILED = "failed"
+
+
+@dataclass(frozen=True, slots=True)
+class TaskItemResult:
+    """Result of one optional business task."""
+
+    task_name: str
+    outcome: TaskOutcome
+    message: str = ""
+
+
+@dataclass(slots=True)
+class TaskReport:
+    """Aggregated optional-task results for one task category."""
+
+    title: str
+    items: list[TaskItemResult] = field(default_factory=list)
+    details: list[str] = field(default_factory=list)
+
+    @property
+    def completed_count(self) -> int:
+        return sum(item.outcome is TaskOutcome.COMPLETED for item in self.items)
+
+    @property
+    def failed_count(self) -> int:
+        return sum(item.outcome is TaskOutcome.FAILED for item in self.items)
+
+    @property
+    def skipped_count(self) -> int:
+        return sum(item.outcome is TaskOutcome.SKIPPED for item in self.items)
+
+    def to_message(self) -> str:
+        summary = (
+            f"🧩 {self.title}: 完成 {self.completed_count}, "
+            f"跳过 {self.skipped_count}, 失败 {self.failed_count}"
+        )
+        item_details = [
+            f"  • {item.task_name}: {item.message}"
+            for item in self.items
+            if item.outcome is not TaskOutcome.COMPLETED and item.message
+        ]
+        return "\n".join([summary, *item_details, *self.details])
+
+
 @dataclass
-class TaskResult:
+class AccountTaskResult:
     """Result of all tasks for a user."""
 
     user_id: str
@@ -85,10 +136,11 @@ class TaskResult:
     vip_info: VipInfo | None = None
     reward: RewardInfo | None = None
     lottery: LotteryResult | None = None
+    task_reports: list[TaskReport] = field(default_factory=list)
     error: str | None = None
 
     def to_message(self) -> str:
-        lines = [f"📋 用户: {self.user_id}", "─" * 20]
+        lines = [f"📋 用户 ID: {self.user_id}", "─" * 20]
 
         if self.checkin:
             lines.append(self.checkin.to_message())
@@ -98,9 +150,8 @@ class TaskResult:
             lines.append(self.reward.to_message())
         if self.lottery:
             lines.append(self.lottery.to_message())
+        lines.extend(task_report.to_message() for task_report in self.task_reports)
         if self.error:
             lines.append(f"❌ {self.error}")
 
         return "\n".join(lines)
-
-

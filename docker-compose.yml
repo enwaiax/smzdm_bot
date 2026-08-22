@@ -13,6 +13,3 @@ services:
         max-file: "1"
     env_file:
       - .env
-    # Uncomment to use config.toml for multi-user support
-    # volumes:
-    #   - ./config.toml:/smzdm_bot/config/config.toml

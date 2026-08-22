@@ -1,34 +1,61 @@
-"""SMZDM Bot - 什么值得买每日签到.
+"""SMZDM Bot public package API.
 
 Usage:
     export SMZDM_COOKIE="your_cookie"
     smzdm-bot run
 
 Or in Python:
-    >>> from smzdm_bot import SmzdmClient
-    >>> from smzdm_bot.config import UserConfig
-    >>> with SmzdmClient(UserConfig(cookie="...")) as client:
-    ...     print(client.checkin().to_message())
+    >>> from smzdm_bot.main import run_all_accounts
+    >>> account_results = run_all_accounts()
 """
 
-from smzdm_bot.client import SmzdmClient
-from smzdm_bot.config import NotifyConfig, Settings, UserConfig, get_settings
-from smzdm_bot.exceptions import APIError, ConfigurationError, SmzdmError
-from smzdm_bot.models import CheckinResult, LotteryResult, RewardInfo, TaskResult, VipInfo
+from importlib.metadata import PackageNotFoundError, version
 
-__version__ = "1.0.0"
+from smzdm_bot.client import SmzdmClient
+from smzdm_bot.config import (
+    NotificationConfig,
+    Settings,
+    TaskPolicyConfig,
+    UserConfig,
+    get_settings,
+)
+from smzdm_bot.exceptions import APIError, ConfigurationError, SmzdmError
+from smzdm_bot.models import (
+    AccountTaskResult,
+    CheckinResult,
+    LotteryResult,
+    RewardInfo,
+    VipInfo,
+)
+from smzdm_bot.protocol import (
+    DEFAULT_APP_PROFILE,
+    AppProfile,
+    compute_request_signature,
+    generate_security_key,
+)
+
+try:
+    __version__ = version("smzdm-bot")
+except PackageNotFoundError:
+    __version__ = "0.0.0"
+
 __all__ = [
-    "SmzdmClient",
-    "Settings",
-    "UserConfig",
-    "NotifyConfig",
-    "get_settings",
-    "CheckinResult",
-    "VipInfo",
-    "RewardInfo",
-    "LotteryResult",
-    "TaskResult",
-    "SmzdmError",
     "APIError",
+    "AccountTaskResult",
+    "AppProfile",
+    "CheckinResult",
     "ConfigurationError",
+    "DEFAULT_APP_PROFILE",
+    "LotteryResult",
+    "NotificationConfig",
+    "RewardInfo",
+    "Settings",
+    "SmzdmClient",
+    "SmzdmError",
+    "TaskPolicyConfig",
+    "UserConfig",
+    "VipInfo",
+    "compute_request_signature",
+    "generate_security_key",
+    "get_settings",
 ]

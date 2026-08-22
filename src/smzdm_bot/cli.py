@@ -19,12 +19,14 @@ from rich.panel import Panel
 from rich.table import Table
 
 from smzdm_bot import __version__
+from smzdm_bot.models import AccountTaskResult
 
 # Initialize
 app = typer.Typer(
     name="smzdm-bot",
     help="🛒 SMZDM Bot - 什么值得买每日签到",
     add_completion=False,
+    no_args_is_help=True,
     rich_markup_mode="rich",
 )
 console = Console()
@@ -38,13 +40,16 @@ LOG_FORMAT = (
 )
 
 
-def setup_logging(debug: bool = False, log_file: Path | None = None) -> None:
+def setup_logging(
+    enable_debug_logging: bool = False,
+    log_file: Path | None = None,
+) -> None:
     """Configure logging."""
     logger.remove()
 
     # Console output
-    level = "DEBUG" if debug else "INFO"
-    logger.add(sys.stderr, format=LOG_FORMAT, level=level, colorize=True)
+    log_level = "DEBUG" if enable_debug_logging else "INFO"
+    logger.add(sys.stderr, format=LOG_FORMAT, level=log_level, colorize=True)
 
     # File output
     if log_file:
@@ -71,19 +76,43 @@ def print_banner() -> None:
     console.print()
 
 
-def version_callback(value: bool) -> None:
+def version_callback(show_version: bool) -> None:
     """Show version and exit."""
-    if value:
-        console.print(f"smzdm-bot version [bold cyan]{__version__}[/bold cyan]")
+    if show_version:
+        print_version()
         raise typer.Exit()
 
 
+def print_version() -> None:
+    """Render the installed package version."""
+    console.print(f"smzdm-bot version [bold cyan]{__version__}[/bold cyan]")
+
+
+def print_run_summary(task_results: list[AccountTaskResult]) -> None:
+    """Render an execution summary without authentication secrets."""
+    summary_table = Table(title="任务汇总", show_header=True)
+    summary_table.add_column("#", justify="right")
+    summary_table.add_column("用户")
+    summary_table.add_column("状态")
+
+    for account_index, task_result in enumerate(task_results, 1):
+        result_status = "[green]成功[/green]" if task_result.success else "[red]失败[/red]"
+        summary_table.add_row(
+            str(account_index),
+            task_result.user_id,
+            result_status,
+        )
+
+    console.print(summary_table)
+
+
 @app.callback()
-def main(
-    version: Annotated[
+def cli_callback(
+    show_version: Annotated[
         bool | None,
         typer.Option(
-            "--version", "-v",
+            "--version",
+            "-v",
             help="Show version and exit.",
             callback=version_callback,
             is_eager=True,
@@ -94,9 +123,15 @@ def main(
     pass
 
 
-@app.command()
-def run(
-    debug: Annotated[
+@app.command("version")
+def version_command() -> None:
+    """Show the installed package version."""
+    print_version()
+
+
+@app.command("run")
+def run_command(
+    enable_debug_logging: Annotated[
         bool,
         typer.Option("--debug", "-d", help="Enable debug logging."),
     ] = False,
@@ -112,18 +147,25 @@ def run(
         smzdm-bot run --debug
         smzdm-bot run --log-file ./smzdm.log
     """
-    setup_logging(debug, log_file or Path("smzdm.log"))
+    setup_logging(enable_debug_logging, log_file)
     print_banner()
 
-    from smzdm_bot.main import main as run_main
+    from smzdm_bot.exceptions import SmzdmError
+    from smzdm_bot.main import determine_exit_code, run_all_accounts
 
-    exit_code = run_main()
-    raise typer.Exit(exit_code)
+    try:
+        task_results = run_all_accounts()
+    except SmzdmError as error:
+        console.print(f"[red]Error:[/red] {error}")
+        raise typer.Exit(1) from None
+
+    print_run_summary(task_results)
+    raise typer.Exit(determine_exit_code(task_results))
 
 
-@app.command()
-def schedule(
-    debug: Annotated[
+@app.command("schedule")
+def schedule_command(
+    enable_debug_logging: Annotated[
         bool,
         typer.Option("--debug", "-d", help="Enable debug logging."),
     ] = False,
@@ -142,7 +184,7 @@ def schedule(
         smzdm-bot schedule
         SMZDM_SCH_HOUR=9 SMZDM_SCH_MINUTE=30 smzdm-bot schedule
     """
-    setup_logging(debug, log_file or Path("smzdm.log"))
+    setup_logging(enable_debug_logging, log_file)
     print_banner()
 
     console.print("[bold green]Starting scheduler...[/bold green]")
@@ -153,60 +195,114 @@ def schedule(
     run_scheduler()
 
 
-@app.command()
-def config() -> None:
-    """Show current configuration (without sensitive data)."""
+@app.command("config")
+def config_command() -> None:
+    """Show current configuration without authentication secrets."""
     from smzdm_bot.config import get_settings
     from smzdm_bot.exceptions import ConfigurationError
+    from smzdm_bot.protocol import parse_cookie_header
 
     print_banner()
 
     try:
         settings = get_settings()
-        users = settings.get_users()
-        notify = settings.get_notify_config()
-        scheduler = settings.get_scheduler_config()
+        user_configs = settings.get_user_configs()
+        notification_config = settings.build_notification_config()
+        scheduler_config = settings.build_scheduler_config()
+        task_policy = settings.build_task_policy()
 
         # Users table
-        table = Table(title="👥 Users", show_header=True)
-        table.add_column("Name", style="cyan")
-        table.add_column("Cookie", style="dim")
-        table.add_column("SK", style="dim")
+        account_table = Table(title="👥 Users", show_header=True)
+        account_table.add_column("User ID", style="cyan")
+        account_table.add_column("Session")
+        account_table.add_column("Identity")
+        account_table.add_column("SK source")
 
-        for user in users:
-            cookie_preview = user.cookie[:20] + "..." if len(user.cookie) > 20 else user.cookie
-            sk_status = "✓" if user.sk else "✗"
-            table.add_row(user.name, cookie_preview, sk_status)
+        for account_index, user_config in enumerate(user_configs, 1):
+            parsed_cookies = parse_cookie_header(user_config.cookie)
+            session_status = (
+                "[green]Ready[/green]" if parsed_cookies.get("sess") else "[red]Missing[/red]"
+            )
+            identity_ready = bool(
+                parsed_cookies.get("smzdm_id") and parsed_cookies.get("device_id")
+            )
+            identity_status = (
+                "[green]Ready[/green]" if identity_ready else "[yellow]Incomplete[/yellow]"
+            )
+            if user_config.security_key:
+                security_key_source = "Configured"
+            elif identity_ready:
+                security_key_source = "Generated"
+            else:
+                security_key_source = "Unavailable"
+            account_table.add_row(
+                parsed_cookies.get("smzdm_id")
+                or user_config.account_label
+                or f"Account {account_index}",
+                session_status,
+                identity_status,
+                security_key_source,
+            )
 
-        console.print(table)
+        console.print(account_table)
         console.print()
 
         # Notification table
-        table = Table(title="🔔 Notifications", show_header=True)
-        table.add_column("Provider", style="cyan")
-        table.add_column("Status")
+        notification_table = Table(title="🔔 Notifications", show_header=True)
+        notification_table.add_column("Provider", style="cyan")
+        notification_table.add_column("Status")
 
-        providers = [
-            ("PushPlus", bool(notify.push_plus_token)),
-            ("ServerChan", bool(notify.sc_key)),
-            ("WeCom", bool(notify.wecom_webhook)),
-            ("Telegram", bool(notify.tg_bot_token and notify.tg_user_id)),
+        provider_configuration_statuses = [
+            ("Bark", bool(notification_config.bark_push_url)),
+            ("PushPlus", bool(notification_config.push_plus_token)),
+            ("ServerChan", bool(notification_config.server_chan_key)),
+            ("WeCom", bool(notification_config.wecom_webhook)),
+            (
+                "Telegram",
+                bool(
+                    notification_config.telegram_bot_token and notification_config.telegram_chat_id
+                ),
+            ),
         ]
 
-        for name, enabled in providers:
-            status = "[green]✓ Enabled[/green]" if enabled else "[dim]✗ Disabled[/dim]"
-            table.add_row(name, status)
+        for provider_name, is_configured in provider_configuration_statuses:
+            provider_status = (
+                "[green]✓ Enabled[/green]" if is_configured else "[dim]✗ Disabled[/dim]"
+            )
+            notification_table.add_row(provider_name, provider_status)
 
-        console.print(table)
+        console.print(notification_table)
+        console.print()
+
+        task_policy_table = Table(title="🧩 Optional tasks", show_header=True)
+        task_policy_table.add_column("Task", style="cyan")
+        task_policy_table.add_column("Status")
+        optional_task_statuses = [
+            ("Follow (reversible)", task_policy.enable_follow_tasks),
+            ("Public testing", task_policy.enable_testing_tasks),
+            ("Stage rewards", task_policy.enable_activity_reward_claims),
+        ]
+        for task_name, is_enabled in optional_task_statuses:
+            task_status = "[green]✓ Enabled[/green]" if is_enabled else "[dim]✗ Disabled[/dim]"
+            task_policy_table.add_row(task_name, task_status)
+        console.print(task_policy_table)
         console.print()
 
         # Scheduler info
-        hour = scheduler.hour if scheduler.hour is not None else "random"
-        minute = scheduler.minute if scheduler.minute is not None else "random"
-        console.print(f"⏰ [bold]Schedule:[/bold] {hour}:{minute} ({scheduler.timezone})")
+        if scheduler_config.hour is None and scheduler_config.minute is None:
+            schedule_text = "random (06:00-10:59)"
+        else:
+            scheduled_hour = (
+                f"{scheduler_config.hour:02d}" if scheduler_config.hour is not None else "06-10"
+            )
+            scheduled_minute = (
+                f"{scheduler_config.minute:02d}" if scheduler_config.minute is not None else "00-59"
+            )
+            schedule_text = f"{scheduled_hour}:{scheduled_minute}"
+        console.print(f"⏰ [bold]Schedule:[/bold] {schedule_text} ({scheduler_config.timezone})")
 
-    except ConfigurationError as e:
-        console.print(f"[red]Configuration error:[/red] {e.message}")
+    except ConfigurationError as error:
+        console.print(f"[red]Configuration error:[/red] {error.message}")
         raise typer.Exit(1) from None
 
 

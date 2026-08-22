@@ -1,60 +1,52 @@
 [project]
 name = "smzdm-bot"
 version = "1.0.0"
-description = "什么值得买每日签到脚本"
+description = "Typed SMZDM automation client with a Typer CLI"
 readme = "README.md"
-license = { text = "MIT" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
-authors = [
-    { name = "Chasing66", email = "chasing66@163.com" }
+keywords = [
+    "smzdm",
+    "checkin",
+    "bot",
 ]
-keywords = ["smzdm", "checkin", "bot"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-
 dependencies = [
-    "apscheduler>=3.10.1",
-    "httpx>=0.27.0",
-    "loguru>=0.7.0",
-    "pycryptodome>=3.20.0",
-    "pydantic>=2.0.0",
-    "pydantic-settings>=2.0.0",
-    "typer>=0.12.0",
+    "apscheduler>=3.11.3",
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+    "pycryptodome>=3.23.0",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.15.0",
+    "rich>=15.0.0",
+    "typer>=0.27.1",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "ruff>=0.8.0",
-    "pytest>=8.0.0",
-]
+[[project.authors]]
+name = "enwaiax"
+email = "enwaiax@users.noreply.github.com"
 
 [project.scripts]
 smzdm-bot = "smzdm_bot.cli:cli_entry"
 smzdm-scheduler = "smzdm_bot.cli:scheduler_entry"
 
 [project.urls]
-Homepage = "https://github.com/Chasing66/smzdm_bot"
-Repository = "https://github.com/Chasing66/smzdm_bot"
+Homepage = "https://github.com/enwaiax/smzdm_bot"
+Repository = "https://github.com/enwaiax/smzdm_bot"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.12.3,<0.13"]
+build-backend = "uv_build"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/smzdm_bot"]
-
-[tool.uv]
-package = true
-dev-dependencies = [
-    "ruff>=0.8.0",
-    "pytest>=8.0.0",
-]
+[tool.uv.build-backend]
+source-include = ["tests/**"]
 
 [tool.ruff]
 target-version = "py312"
@@ -62,11 +54,25 @@ line-length = 100
 src = ["src"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
+select = [
+    "E",
+    "F",
+    "I",
+    "N",
+    "UP",
+    "B",
+    "SIM",
+]
 
 [tool.ruff.lint.isort]
 known-first-party = ["smzdm_bot"]
 
 [tool.pytest.ini_options]
+addopts = "-ra"
 testpaths = ["tests"]
-pythonpath = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.4",
+]

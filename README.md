@@ -1,229 +1,268 @@
-# 什么值得买每日签到脚本
+# SMZDM Bot
 
-<p>
-    <img src="https://img.shields.io/github/actions/workflow/status/Chasing66/smzdm_bot/checkin.yml?label=CheckIn">
-    <img src="https://img.shields.io/github/actions/workflow/status/Chasing66/smzdm_bot/build.yml?label=Build">
-    <img src="https://img.shields.io/github/license/Chasing66/smzdm_bot">
-    <img src="https://img.shields.io/docker/pulls/enwaiax/smzdm_bot">
-</p>
+[![Package](https://img.shields.io/github/actions/workflow/status/enwaiax/smzdm_bot/package.yml?label=Package)](https://github.com/enwaiax/smzdm_bot/actions/workflows/package.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/enwaiax/smzdm_bot/build.yml?label=Build)](https://github.com/enwaiax/smzdm_bot/actions/workflows/build.yml)
+[![License](https://img.shields.io/github/license/enwaiax/smzdm_bot)](LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/enwaiax/smzdm_bot)](https://hub.docker.com/r/enwaiax/smzdm_bot)
 
-## 更新日志
+基于 Python 3.12、Typer、Rich、httpx 和 Pydantic 构建的什么值得买自动化客户端。
 
-- 2024-xx-xx, 重构项目，使用 src layout 和 uv 管理依赖
-- 2023-04-23，更新抽奖功能
-- 2023-04-06, 新增企业微信BOT-WEBHOOK通知推送方式，仅需要`ANDROID_COOKIE`一个变量, `SK`改为可选变量
-- 2023-03-02, 新增每日抽奖
-- 2023-03-01, 支持青龙面板且支持多账号
-- 2023-02-25, 新增`all_reward` 和`extra_reward`两个接口，本地支持多用户运行
-- 2023-02-18, 通过安卓端验证登录
+项目采用标准 `src` layout，可作为 Python package 安装，也可以通过 CLI、scheduler 或青龙面板运行。
 
-## 1. 实现功能
+## 功能
 
-- 每日签到, 额外奖励，随机奖励
-- 多种运行方式: GitHub Action, 本地运行，docker， 青龙面板
-- 多种通知方式: `pushplus`, `server酱`,`企业微信bot-webhook`, `telegram bot`
-- 支持多账号(需配置`config.toml`)
+- Android APP 请求签名
+- 根据 `smzdm_id + device_id` 动态生成 SK
+- 每日签到及签到奖励
+- 连续签到额外奖励
+- VIP 信息
+- 当前 APP 任务抽奖和免费幸运屋
+- 每日文章浏览、关注和阶段奖励任务
+- 可识别并明确跳过不安全或未经验证的写入任务
+- 可选全民众测任务
+- 多账号
+- Bark、PushPlus、ServerChan、企业微信和 Telegram 通知
+- Typer CLI 和 Rich 输出
+- APScheduler 定时执行
+- 顶层任务和可执行子任务均使用随机前置延时
 
-## 2. 项目结构
+签名和 SK 算法已通过 SMZDM Android 11.1.90 APK 静态验证。验证过程见
+[`docs/apk-crypto-research-guide.md`](docs/apk-crypto-research-guide.md)。
+当前版本的接口、签名范围、响应结构和废弃记录见
+[`docs/smzdm-api-reference.md`](docs/smzdm-api-reference.md)。
 
-```
-smzdm_bot/
-├── src/
-│   └── smzdm_bot/
-│       ├── __init__.py
-│       ├── cli.py           # 命令行入口
-│       ├── main.py          # 主逻辑
-│       ├── scheduler.py     # 定时任务
-│       ├── config/
-│       │   └── config_example.toml
-│       ├── notify/
-│       │   └── notify.py    # 通知模块
-│       └── utils/
-│           ├── file_helper.py
-│           ├── smzdm_bot.py
-│           └── smzdm_tasks.py
-├── pyproject.toml           # 项目配置 (uv/pip)
-├── Dockerfile
-├── docker-compose.yml
-└── smzdm_ql.py             # 青龙面板脚本
-```
+## Package 结构
 
-## 3. 配置
-
-支持两种读取配置的方法，从`环境变量`或者`config.toml`中读取
-
-### 3.1 从环境变量中读取配置
-
-```conf
-# Cookie
-ANDROID_COOKIE = ""
-SK = "" # 可选，如果抓包抓到最好设置
-
-# Notification
-PUSH_PLUS_TOKEN = ""
-SC_KEY = ""
-WECOM_BOT_WEBHOOK = ""
-TG_BOT_TOKEN = ""
-TG_USER_ID = ""
-
-# 用于自定义反代的Telegram Bot API(按需设置)
-TG_BOT_API = ""
-
-# 用于docker运行的定时设定(可选)，未设定则随机定时执行
-SCH_HOUR=
-SCH_MINUTE=
+```text
+src/smzdm_bot/
+├── config/
+│   ├── models.py       # 运行时配置模型
+│   └── settings.py     # 环境变量和 .env 加载
+├── tasks/
+│   ├── checkin.py      # 签到、VIP 和奖励
+│   ├── lottery.py      # 任务抽奖和幸运屋
+│   ├── daily.py        # 每日活动任务
+│   ├── testing.py      # 全民众测活动
+│   ├── execution.py    # 通用执行策略
+│   └── runner.py       # 单账号任务编排
+├── client.py           # HTTP 请求
+├── protocol.py         # APP profile、签名和 SK
+├── main.py             # 多账号及通知编排
+└── cli.py              # Typer/Rich CLI
 ```
 
-### 3.2 从`config.toml`中读取
+依赖方向保持从配置和协议层指向客户端、任务编排和 CLI，避免业务模块反向依赖入口层。
 
-参考模板 [src/smzdm_bot/config/config_example.toml](https://github.com/Chasing66/smzdm_bot/blob/main/src/smzdm_bot/config/config_example.toml)
+## 安装
 
-```toml
-[user.A]
-ANDROID_COOKIE = ""
-SK = "" # 可选，如果抓包抓到最好设置
-
-[user.B]
-# Disable userB的签到. 不配置此参数默认启用该用户
-Disable = true
-ANDROID_COOKIE = ""
-SK = "" # 可选，如果抓包抓到最好设置
-
-[notify]
-PUSH_PLUS_TOKEN = ""
-SC_KEY = ""
-WECOM_BOT_WEBHOOK = ""
-TG_BOT_TOKEN = ""
-TG_USER_ID = ""
-TG_BOT_API = ""
-```
-
-## 4. 使用
-
-### 4.1 青龙面板
-
-```
-ql repo https://github.com/Chasing66/smzdm_bot.git "smzdm_ql.py"
-```
-
-默认情况下从环境变量读取配置,仅支持单用户.
-
-如果需要支持多用户，推荐使用`config.toml`, 配置参考 [3.2 从`config.toml`中读取](#32-从configtoml中读取).
-配置完成后, 拷贝`config.toml`到青龙容器内的`/ql/data/repo/Chasing66_smzdm_bot/src/smzdm_bot/config`
-
-```
-docker cp config.toml <你的青龙容器名称>:/ql/data/repo/Chasing66_smzdm_bot/src/smzdm_bot/config
-```
-
-### 4.2 本地直接运行 (推荐使用 uv)
-
-克隆本项目到本地, 按照需求配置
-
-**使用 uv (推荐)**
+推荐使用 [uv](https://docs.astral.sh/uv/)：
 
 ```bash
-# 安装 uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# 克隆并安装
-git clone https://github.com/Chasing66/smzdm_bot.git
-cd smzdm_bot
-uv sync
-
-# 配置
-cp src/smzdm_bot/config/config_example.toml src/smzdm_bot/config/config.toml
-# 编辑 config.toml 填入你的配置
-
-# 运行一次
-uv run smzdm-bot
-
-# 或者运行定时任务
-uv run smzdm-scheduler
+uv sync --locked
 ```
 
-**使用 pip**
+查看 CLI：
 
 ```bash
-git clone https://github.com/Chasing66/smzdm_bot.git
-cd smzdm_bot
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
-
-# 配置
-cp src/smzdm_bot/config/config_example.toml src/smzdm_bot/config/config.toml
-# 编辑 config.toml
-
-# 运行
-smzdm-bot
+uv run smzdm-bot --help
 ```
 
-### 4.3 本地 docker-compose 运行
+也可以构建 wheel 后作为独立 CLI 工具安装：
 
-配置参考 [3.2 从`config.toml`中读取](#32-从configtoml中读取)
+```bash
+uv build --no-sources
+uv tool install dist/smzdm_bot-*.whl
+```
 
-**使用环境变量**
+## 配置
 
-创建 `.env` 文件:
+项目从当前工作目录的 `.env` 或系统环境变量读取配置。所有变量使用 `SMZDM_` 前缀。
+
+### 单账号
 
 ```env
-ANDROID_COOKIE=your_cookie_here
-SK=your_sk_here
-PUSH_PLUS_TOKEN=your_token
+SMZDM_COOKIE="your_cookie"
+SMZDM_SK=""
 ```
 
-运行:
+`SMZDM_SK` 可选。未配置时，Cookie 必须包含：
+
+- `sess`
+- `smzdm_id`
+- `device_id`
+
+### 多账号
+
+```env
+SMZDM_USERS='[
+  {"account_label": "account-1", "cookie": "cookie-1"},
+  {
+    "account_label": "account-2",
+    "cookie": "cookie-2",
+    "security_key": "optional-sk"
+  }
+]'
+```
+
+设置 `SMZDM_USERS` 后优先使用多账号配置。
+运行汇总和通知优先显示各 Cookie 中的 `smzdm_id`；仅在该字段缺失时使用
+`account_label` 作为回退标识。
+
+### 通知
+
+```env
+SMZDM_BARK_PUSH=""
+SMZDM_PUSH_PLUS_TOKEN=""
+SMZDM_SC_KEY=""
+SMZDM_WECOM_WEBHOOK=""
+SMZDM_TG_BOT_TOKEN=""
+SMZDM_TG_USER_ID=""
+SMZDM_TG_API_BASE=""
+```
+
+`SMZDM_BARK_PUSH` 使用完整 Bark 推送地址，例如
+`https://api.day.app/your-device-key`。配置非空时自动启用 Bark。
+
+### 可选任务策略
+
+```env
+SMZDM_ENABLE_FOLLOW_TASKS=true
+SMZDM_ENABLE_TESTING_TASKS=false
+SMZDM_ENABLE_ACTIVITY_REWARD_CLAIMS=true
+```
+
+- 评论和内容发布任务不自动执行，也没有启用开关。
+- 当前 API 不提供可靠的点赞、收藏账号状态，APP 使用本地数据库保存，因此两类任务固定跳过。
+- 用户、栏目和品牌关注会读取当前状态，并在任务后恢复。
+- 分享流程未经当前版本验证且无法撤销，因此固定跳过。
+- 付费幸运屋目标映射未经验证，因此不自动参与；免费选项仍会正常处理。
+- 站外浏览、打开第三方 APP 和下载 APP 需要真实设备行为，因此固定跳过。
+- 创建签到小组件和开启推送需要真实 Android 系统状态，因此固定跳过。
+- 全民众测默认关闭；开启后会动态读取当前活动 ID，并使用独立领奖接口。
+- 众测申请涉及报名和资格选择，不自动执行。
+- 旧版接口和任务数据结构不匹配时，任务会报告跳过或失败，不会尝试内容发布。
+
+### Scheduler
+
+```env
+SMZDM_SCH_HOUR=9
+SMZDM_SCH_MINUTE=30
+SMZDM_TIMEZONE="Asia/Shanghai"
+```
+
+未设置时间时，每次启动会在 06:00 至 10:59 之间选择一个执行时间。
+
+## CLI
+
+执行一次：
 
 ```bash
-docker-compose up -d
+uv run smzdm-bot run
 ```
 
-**使用 config.toml**
+启动 scheduler：
 
-修改 `docker-compose.yml`, 取消 volumes 注释:
-
-```yaml
-services:
-  smzdm_bot:
-    image: enwaiax/smzdm_bot
-    container_name: smzdm_bot
-    restart: on-failure
-    volumes:
-      - ./config.toml:/smzdm_bot/config/config.toml
+```bash
+uv run smzdm-bot schedule
 ```
 
-### 4.4 GitHub Action 运行
+检查配置；显示 `smzdm_id` 以区分账号，但不显示 Cookie 或 SK：
 
-> GitHub Action 禁止对于 Action 资源的滥用，请尽可能使用其他方式
-
-GitHub Action 仅支持`env`配置方式, **务必自行更改为随机时间**
-
-1. Fork[此仓库项目](https://github.com/Chasing66/smzdm_bot)>, 欢迎`star`~
-2. 修改 `.github/workflows/checkin.yml`里的下面部分, 取消`schedule`两行的注释，自行设定时间
-
-```yaml
-# UTC时间，对应Beijing时间 9：30
-schedule:
-  - cron: "30 1 * * *"
+```bash
+uv run smzdm-bot config
 ```
 
-3. 在仓库 Settings -> Secrets 中添加环境变量
+查看版本：
 
-## 5. 其它
+```bash
+uv run smzdm-bot version
+uv run python -m smzdm_bot --version
+```
 
-### 5.1 手机抓包
+启用 debug 日志：
 
-> 抓包有一定门槛，请自行尝试! 如果实在解决不了，请我喝瓶可乐可以帮忙
+```bash
+uv run smzdm-bot run --debug
+```
 
-抓包工具可使用 HttpCanary，教程参考[HttpCanary 抓包](https://juejin.cn/post/7177682063699968061)
+写入日志文件：
 
-1. 按照上述教程配置好 HttpCanary
-2. 开始抓包，并打开什么值得买 APP
-3. 过滤`https://user-api.smzdm.com/checkin`的`post`请求并查看
-4. 点击右上角分享，分享 cURL，复制保存该命令
-5. 将复制的 curl 命令转换为 python 格式，[方法](https://curlconverter.com/)
-6. 填入转换后的`Cookies`和`sk`. `Cookies`在`headers`里，`sk`在`data`里, `sk`是可选项
+```bash
+uv run smzdm-bot run --log-file ./smzdm.log
+```
 
-## 6. Stargazers over time
+默认不创建日志文件。
 
-[![Stargazers over time](https://starchart.cc/Chasing66/smzdm_bot.svg)](https://starchart.cc/Chasing66/smzdm_bot)
+## Python API
+
+执行所有已配置账号：
+
+```python
+from smzdm_bot.main import run_all_accounts
+
+account_results = run_all_accounts()
+```
+
+调用只读 API：
+
+```python
+from smzdm_bot import SmzdmClient, UserConfig
+
+user_config = UserConfig(cookie="...")
+with SmzdmClient(user_config) as smzdm_client:
+    vip_response = smzdm_client.post("/vip")
+```
+
+## 青龙面板
+
+拉取仓库：
+
+```text
+ql repo https://github.com/enwaiax/smzdm_bot.git "smzdm_ql.py"
+```
+
+青龙入口会安装当前 checkout，并执行：
+
+```bash
+python -m smzdm_bot run
+```
+
+它不会在每次运行时升级 pip。
+
+## 开发
+
+安装开发依赖：
+
+```bash
+uv sync --locked --dev
+```
+
+运行检查：
+
+```bash
+uv run ruff check src tests tools
+uv run ruff format --check src tests tools
+uv run pytest
+uv build --no-sources
+uv run --isolated --no-project --with dist/*.whl smzdm-bot --version
+uv run --isolated --no-project --with dist/*.tar.gz smzdm-bot --version
+```
+
+APK Key 静态检查工具使用独立的 PEP 723 依赖，不进入生产 package：
+
+```bash
+uv run tools/extract_smzdm_apk_keys.py /path/to/smzdm.apk
+```
+
+## 安全说明
+
+- 不要提交 `.env`、Cookie、session、token、用户 ID 或设备标识。
+- 默认只应使用自己的账号和合法取得的数据。
+- 遇到验证码、`403`、`429` 或风控提示时停止请求，不进行绕过。
+- 互动类自动任务可能违反平台规则并带来账号风险。
+- 项目不会自动点赞、收藏、分享、发布内容或参与付费幸运屋。
+- APK 分析、Key 提取和线上 API 请求应保持为相互独立、可审计的步骤。
+
+## License
+
+Apache-2.0

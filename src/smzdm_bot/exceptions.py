@@ -27,24 +27,20 @@ class APIError(SmzdmError):
     def __init__(
         self,
         message: str,
-        status_code: int | None = None,
+        http_status_code: int | None = None,
         error_code: int | None = None,
         details: dict[str, Any] | None = None,
     ) -> None:
-        self.status_code = status_code
+        self.http_status_code = http_status_code
         self.error_code = error_code
         super().__init__(message, details)
 
     def __str__(self) -> str:
-        parts = [self.message]
-        if self.status_code:
-            parts.append(f"HTTP {self.status_code}")
+        message_components = [self.message]
+        if self.http_status_code:
+            message_components.append(f"HTTP {self.http_status_code}")
         if self.error_code:
-            parts.append(f"Code: {self.error_code}")
+            message_components.append(f"Code: {self.error_code}")
         if self.details:
-            parts.append(f"Details: {self.details}")
-        return " | ".join(parts)
-
-
-# Alias for backward compatibility
-AuthenticationError = APIError
+            message_components.append(f"Details: {self.details}")
+        return " | ".join(message_components)

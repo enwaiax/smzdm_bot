@@ -28,7 +28,6 @@ env/
 
 # uv
 .uv/
-uv.lock
 
 # IDE
 .idea/
@@ -43,8 +42,14 @@ smzdm.log
 
 # Config files
 .env
-*.toml
-!pyproject.toml
+.env.*
+!.env.example
+/config.toml
+
+# APK research artifacts
+*.apk
+.apk-analysis/
+*.har
 
 # OS
 .DS_Store
@@ -53,6 +58,8 @@ Thumbs.db
 # Testing
 .pytest_cache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
 .tox/
 .nox/

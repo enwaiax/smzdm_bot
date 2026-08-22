@@ -1,35 +1,23 @@
-# Build stage
 FROM python:3.12-alpine AS builder
 
-RUN apk update && apk add --no-cache tzdata ca-certificates
-
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.3 /uv /uvx /bin/
 
 WORKDIR /app
 
-# Copy project files
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src ./src
 
-# Install dependencies using uv
-RUN uv pip install --system --no-cache .
+RUN uv sync --locked --no-dev --no-editable
 
-# Runtime stage
 FROM python:3.12-alpine
 
-WORKDIR /smzdm_bot
-
 ENV TZ=Asia/Shanghai
+ENV PATH="/app/.venv/bin:$PATH"
 
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin/smzdm* /usr/local/bin/
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+RUN apk add --no-cache ca-certificates tzdata
 
-# Copy source for config lookup
-COPY src/smzdm_bot/config /smzdm_bot/config
+WORKDIR /app
+
+COPY --from=builder /app/.venv /app/.venv
 
 CMD ["smzdm-scheduler"]
-
-
