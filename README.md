@@ -1,8 +1,8 @@
 # SMZDM Bot
 
-[![Package](https://img.shields.io/github/actions/workflow/status/enwaiax/smzdm_bot/package.yml?label=Package)](https://github.com/enwaiax/smzdm_bot/actions/workflows/package.yml)
-[![Build](https://img.shields.io/github/actions/workflow/status/enwaiax/smzdm_bot/build.yml?label=Build)](https://github.com/enwaiax/smzdm_bot/actions/workflows/build.yml)
-[![License](https://img.shields.io/github/license/enwaiax/smzdm_bot)](LICENSE)
+[![Package](https://img.shields.io/github/actions/workflow/status/enwaiax/smzdm-bot/package.yml?label=Package)](https://github.com/enwaiax/smzdm-bot/actions/workflows/package.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/enwaiax/smzdm-bot/build.yml?label=Build)](https://github.com/enwaiax/smzdm-bot/actions/workflows/build.yml)
+[![License](https://img.shields.io/github/license/enwaiax/smzdm-bot)](LICENSE)
 [![Docker Pulls](https://img.shields.io/docker/pulls/enwaiax/smzdm_bot)](https://hub.docker.com/r/enwaiax/smzdm_bot)
 
 基于 Python 3.12、Typer、Rich、httpx 和 Pydantic 构建的什么值得买自动化客户端。
@@ -218,7 +218,7 @@ with SmzdmClient(user_config) as smzdm_client:
 拉取仓库：
 
 ```text
-ql repo https://github.com/enwaiax/smzdm_bot.git "smzdm_ql.py"
+ql repo https://github.com/enwaiax/smzdm-bot.git "smzdm_ql.py"
 ```
 
 青龙入口会安装当前 checkout，并执行：

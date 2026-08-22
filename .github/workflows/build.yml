@@ -44,8 +44,7 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
-          repository_name="${GITHUB_REPOSITORY#*/}"
-          echo "name=${DOCKERHUB_USERNAME,,}/${repository_name,,}" >> "$GITHUB_OUTPUT"
+          echo "name=${DOCKERHUB_USERNAME,,}/smzdm_bot" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v7

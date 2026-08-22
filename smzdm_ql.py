@@ -1,6 +1,6 @@
 """
 SMZDM QingLong entrypoint
-Repository: https://github.com/enwaiax/smzdm_bot
+Repository: https://github.com/enwaiax/smzdm-bot
 0 9 * * * smzdm_ql.py
 const $ = new Env("什么值得买签到");
 """

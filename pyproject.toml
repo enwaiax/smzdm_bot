@@ -38,8 +38,8 @@ smzdm-bot = "smzdm_bot.cli:cli_entry"
 smzdm-scheduler = "smzdm_bot.cli:scheduler_entry"
 
 [project.urls]
-Homepage = "https://github.com/enwaiax/smzdm_bot"
-Repository = "https://github.com/enwaiax/smzdm_bot"
+Homepage = "https://github.com/enwaiax/smzdm-bot"
+Repository = "https://github.com/enwaiax/smzdm-bot"
 
 [build-system]
 requires = ["uv_build>=0.12.3,<0.13"]
