@@ -12,11 +12,11 @@ from loguru import logger
 from smzdm_bot.config import UserConfig
 from smzdm_bot.exceptions import APIError, ConfigurationError
 from smzdm_bot.protocol import (
-    DEFAULT_APP_PROFILE,
     AppProfile,
     compute_request_signature,
     generate_security_key,
     parse_cookie_header,
+    resolve_app_profile,
 )
 
 
@@ -39,11 +39,10 @@ class SmzdmClient:
     def __init__(
         self,
         user_config: UserConfig,
-        app_profile: AppProfile = DEFAULT_APP_PROFILE,
+        app_profile: AppProfile | None = None,
     ) -> None:
         self._cookie_header = user_config.cookie.strip()
         self._parsed_cookies = parse_cookie_header(self._cookie_header)
-        self._app_profile = app_profile
 
         if not self._parsed_cookies.get("sess"):
             raise APIError("Cookie 缺少 sess 字段")
@@ -51,13 +50,22 @@ class SmzdmClient:
         self.smzdm_user_id = self._parsed_cookies.get("smzdm_id", "")
 
         # 设备信息
-        self._app_version = self._parsed_cookies.get("device_smzdm_version", app_profile.version)
         self._platform_name = self._parsed_cookies.get("device_smzdm", "android")
+        self._app_profile = app_profile or resolve_app_profile(self._platform_name)
+        self._app_version = (
+            self._parsed_cookies.get("device_smzdm_version")
+            or self._parsed_cookies.get("v")
+            or self._app_profile.version
+        )
         self._device_id = self._parsed_cookies.get("device_id", "")
 
-        # SK: 优先使用配置，否则自动生成
+        # Android requires a generated SK. The verified iPhone requests authenticate
+        # with Cookie only and do not include SK in their signed form.
         if user_config.security_key:
             self._security_key = user_config.security_key
+        elif self.is_iphone:
+            self._security_key = ""
+            logger.debug("iPhone 协议不需要 SK")
         else:
             missing_cookie_fields = [
                 field_name
@@ -73,7 +81,7 @@ class SmzdmClient:
             self._security_key = generate_security_key(
                 self.smzdm_user_id,
                 self._device_id,
-                app_profile,
+                self._app_profile,
             )
             logger.debug("SK 自动生成成功")
 
@@ -83,6 +91,11 @@ class SmzdmClient:
     def security_key(self) -> str:
         """Return the configured or generated request security key."""
         return self._security_key
+
+    @property
+    def is_iphone(self) -> bool:
+        """Return whether this client uses the verified iPhone protocol."""
+        return self._platform_name.strip().lower() in {"iphone", "ios"}
 
     def close(self) -> None:
         self._http_client.close()
@@ -152,7 +165,9 @@ class SmzdmClient:
             "v": self._app_version,
             "time": f"{int(time.time())}000",
         }
-        if include_session_fields:
+        if self.is_iphone:
+            form_fields["zhuanzai_ab"] = "d"
+        if include_session_fields and not self.is_iphone:
             form_fields["token"] = self._parsed_cookies.get("sess", "")
             if self._security_key:
                 form_fields["sk"] = self._security_key

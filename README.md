@@ -11,7 +11,7 @@
 
 ## 功能
 
-- Android APP 请求签名
+- Android 11.1.90 和 iPhone 11.1.92 APP 请求签名
 - 根据 `smzdm_id + device_id` 动态生成 SK
 - 每日签到及签到奖励
 - 连续签到额外奖励
@@ -77,6 +77,18 @@ uv tool install dist/smzdm_bot-*.whl
 ## 配置
 
 项目从当前工作目录的 `.env` 或系统环境变量读取配置。所有变量使用 `SMZDM_` 前缀。
+
+也可以从 APP 抓包导出的 HAR 文件中导入登录 Cookie。脚本只读取什么值得买域名的
+请求，并且不会在终端输出 Cookie 内容：
+
+```bash
+python tools/import_smzdm_har.py /path/to/smzdm.har
+```
+
+脚本默认更新当前目录的 `.env`、将权限设为 `0600`，并在文件已存在时生成带时间戳的
+备份。使用 `--dry-run` 可以只验证、不写入文件；如果 HAR 包含多个账号，可以使用
+`--user-id` 选择账号。导入时 `SMZDM_SK` 默认清空，由程序根据 Cookie 中的
+`smzdm_id + device_id` 动态生成；iPhone 请求不需要 SK。
 
 ### 单账号
 

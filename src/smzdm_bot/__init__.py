@@ -29,9 +29,11 @@ from smzdm_bot.models import (
 )
 from smzdm_bot.protocol import (
     DEFAULT_APP_PROFILE,
+    IPHONE_APP_PROFILE,
     AppProfile,
     compute_request_signature,
     generate_security_key,
+    resolve_app_profile,
 )
 
 try:
@@ -46,6 +48,7 @@ __all__ = [
     "CheckinResult",
     "ConfigurationError",
     "DEFAULT_APP_PROFILE",
+    "IPHONE_APP_PROFILE",
     "LotteryResult",
     "NotificationConfig",
     "RewardInfo",
@@ -58,4 +61,5 @@ __all__ = [
     "compute_request_signature",
     "generate_security_key",
     "get_settings",
+    "resolve_app_profile",
 ]

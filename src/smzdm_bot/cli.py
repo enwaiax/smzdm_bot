@@ -231,6 +231,8 @@ def config_command() -> None:
             )
             if user_config.security_key:
                 security_key_source = "Configured"
+            elif parsed_cookies.get("device_smzdm", "").lower() in {"iphone", "ios"}:
+                security_key_source = "Not required"
             elif identity_ready:
                 security_key_source = "Generated"
             else:
