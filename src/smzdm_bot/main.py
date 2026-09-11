@@ -48,13 +48,22 @@ def run_all_accounts(settings: Settings | None = None) -> list[AccountTaskResult
 
     # Send notification
     notification_config = settings.build_notification_config()
-    if notification_config.has_any_provider and task_results:
+    all_succeeded = bool(task_results) and all(result.success for result in task_results)
+    should_notify = (
+        notification_config.notify_on_success
+        if all_succeeded
+        else notification_config.notify_on_failure
+    )
+    if notification_config.notify_enabled and should_notify and task_results:
         successful_account_count = sum(1 for task_result in task_results if task_result.success)
-        send_configured_notifications(
-            notification_config,
-            title=f"什么值得买签到 ({successful_account_count}/{len(task_results)})",
-            content="\n\n".join(task_result.to_message() for task_result in task_results),
-        )
+        try:
+            send_configured_notifications(
+                notification_config,
+                title=f"什么值得买签到 ({successful_account_count}/{len(task_results)})",
+                content="\n\n".join(task_result.to_message() for task_result in task_results),
+            )
+        except Exception:
+            logger.warning("Notification failed; account results are unchanged")
 
     return task_results
 

@@ -254,17 +254,13 @@ def config_command() -> None:
         notification_table.add_column("Provider", style="cyan")
         notification_table.add_column("Status")
 
+        from smzdm_bot.notifications.manager import CHANNEL_REGISTRY, NotificationManager
+
+        enabled_names = {
+            channel.name for channel in NotificationManager(notification_config).enabled_channels()
+        }
         provider_configuration_statuses = [
-            ("Bark", bool(notification_config.bark_push_url)),
-            ("PushPlus", bool(notification_config.push_plus_token)),
-            ("ServerChan", bool(notification_config.server_chan_key)),
-            ("WeCom", bool(notification_config.wecom_webhook)),
-            (
-                "Telegram",
-                bool(
-                    notification_config.telegram_bot_token and notification_config.telegram_chat_id
-                ),
-            ),
+            (name, name in enabled_names) for name in CHANNEL_REGISTRY
         ]
 
         for provider_name, is_configured in provider_configuration_statuses:

@@ -8,6 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from smzdm_bot.config.models import (
     NotificationConfig,
+    NotificationOptions,
     SchedulerConfig,
     TaskPolicyConfig,
     UserConfig,
@@ -15,7 +16,7 @@ from smzdm_bot.config.models import (
 from smzdm_bot.exceptions import ConfigurationError
 
 
-class Settings(BaseSettings):
+class Settings(BaseSettings, NotificationOptions):
     """Application settings loaded from ``SMZDM_*`` environment variables."""
 
     cookie: str = ""
@@ -171,6 +172,7 @@ class Settings(BaseSettings):
     def build_notification_config(self) -> NotificationConfig:
         """Build the provider-neutral notification configuration."""
         return NotificationConfig(
+            **{name: getattr(self, name) for name in NotificationOptions.model_fields},
             bark_push_url=self.bark_push_url,
             push_plus_token=self.push_plus_token,
             server_chan_key=self.server_chan_key,
