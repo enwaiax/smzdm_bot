@@ -31,6 +31,21 @@ DEFAULT_APP_PROFILE = AppProfile(
     sk_key="geZm53XAspb02exN",
 )
 
+# Verified against decrypted com.smzdm.client.ios 11.1.92 and matching HAR requests.
+IPHONE_APP_PROFILE = AppProfile(
+    version="11.1.92",
+    version_code="11.1.92",
+    sign_key="zok5JtAq3$QixaA%mncn*jGWlEpSL3E1",
+    sk_key="",
+)
+
+
+def resolve_app_profile(platform_name: str) -> AppProfile:
+    """Return the verified protocol profile for a captured app platform."""
+    if platform_name.strip().lower() in {"iphone", "ios"}:
+        return IPHONE_APP_PROFILE
+    return DEFAULT_APP_PROFILE
+
 
 def parse_cookie_header(cookie_header: str) -> dict[str, str]:
     """Parse a Cookie header into decoded key-value pairs."""
@@ -80,7 +95,9 @@ def generate_security_key(
 __all__ = [
     "AppProfile",
     "DEFAULT_APP_PROFILE",
+    "IPHONE_APP_PROFILE",
     "compute_request_signature",
     "generate_security_key",
     "parse_cookie_header",
+    "resolve_app_profile",
 ]

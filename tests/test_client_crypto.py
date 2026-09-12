@@ -4,6 +4,7 @@ from smzdm_bot.client import SmzdmClient
 from smzdm_bot.config import UserConfig
 from smzdm_bot.exceptions import ConfigurationError
 from smzdm_bot.protocol import (
+    IPHONE_APP_PROFILE,
     AppProfile,
     compute_request_signature,
     generate_security_key,
@@ -123,6 +124,46 @@ def test_client_uses_apk_verified_default_app_version() -> None:
         assert smzdm_client._build_app_headers()["User-Agent"] == (
             "smzdm_android_V11.1.90 rv:1190 (Redmi;Android10;zh)smzdmapp"
         )
+
+
+def test_client_selects_iphone_profile_and_cookie_version() -> None:
+    user_config = UserConfig(
+        cookie=(
+            "sess=synthetic-session; smzdm_id=1234567890; device_id=device; "
+            "device_smzdm=iphone; v=11.1.92; device_smzdm_version_code=172.4;"
+        )
+    )
+
+    with SmzdmClient(user_config) as smzdm_client:
+        assert smzdm_client.is_iphone is True
+        assert smzdm_client.security_key == ""
+        assert smzdm_client._app_profile is IPHONE_APP_PROFILE
+        assert smzdm_client._app_version == "11.1.92"
+
+
+def test_iphone_checkin_signature_matches_captured_11_1_92_vector(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user_config = UserConfig(
+        cookie=(
+            "sess=synthetic-session; smzdm_id=1234567890; device_id=device; "
+            "device_smzdm=iphone; v=11.1.92;"
+        )
+    )
+    monkeypatch.setattr("smzdm_bot.client.time.time", lambda: 1788879771)
+
+    with SmzdmClient(user_config) as smzdm_client:
+        signed_form = smzdm_client._build_signed_form()
+
+    assert signed_form == {
+        "basic_v": "0",
+        "f": "iphone",
+        "sign": "3BFD756803D6619AEC658294B4BAB0A2",
+        "time": "1788879771000",
+        "v": "11.1.92",
+        "weixin": "1",
+        "zhuanzai_ab": "d",
+    }
 
 
 def test_signed_form_can_omit_user_api_session_fields() -> None:

@@ -27,7 +27,7 @@ def test_send_bark_notification_uses_configured_endpoint(
         )
         return SimpleNamespace(status_code=200, json=lambda: {"code": 200})
 
-    monkeypatch.setattr("smzdm_bot.notify.httpx.post", fake_post)
+    monkeypatch.setattr("smzdm_bot.notifications.base.httpx.post", fake_post)
 
     succeeded = send_bark_notification(
         "https://api.day.app/device-key",
@@ -49,16 +49,14 @@ def test_configured_notifications_include_bark(
 ) -> None:
     delivered_notifications: list[tuple[str, str, str]] = []
 
-    def fake_send_bark(
-        push_url: str,
-        title: str,
-        content: str,
-    ) -> bool:
-        delivered_notifications.append((push_url, title, content))
-        return True
+    from smzdm_bot.notifications.base import NotificationResult
+
+    def fake_send_bark(self, title: str, content: str) -> NotificationResult:
+        delivered_notifications.append((self.config.bark_push_url, title, content))
+        return NotificationResult("bark", True, delivered=1)
 
     monkeypatch.setattr(
-        "smzdm_bot.notify.send_bark_notification",
+        "smzdm_bot.notifications.channels.BarkChannel.send",
         fake_send_bark,
     )
 

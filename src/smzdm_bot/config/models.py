@@ -27,16 +27,37 @@ class UserConfig(BaseModel):
         return cookie_value.strip()
 
 
-class NotificationConfig(BaseModel):
+class NotificationOptions(BaseModel):
+    """Shared notification controls; None preserves credential-based opt-in."""
+
+    notify_enabled: bool = True
+    notify_channels: str = ""
+    notify_timeout: float = Field(default=10.0, gt=0, allow_inf_nan=False)
+    notify_on_success: bool = True
+    notify_on_failure: bool = True
+    notify_bark_enabled: bool | None = None
+    notify_feishu_enabled: bool | None = None
+    notify_dingtalk_enabled: bool | None = None
+    notify_telegram_enabled: bool | None = None
+    notify_wecom_enabled: bool | None = None
+    notify_pushplus_enabled: bool | None = None
+    notify_serverchan_enabled: bool | None = None
+    feishu_webhook: str = Field(default="", repr=False)
+    feishu_secret: str = Field(default="", repr=False)
+    dingtalk_webhook: str = Field(default="", repr=False)
+    dingtalk_secret: str = Field(default="", repr=False)
+
+
+class NotificationConfig(NotificationOptions):
     """Configuration for enabled notification providers."""
 
-    bark_push_url: str = ""
-    push_plus_token: str = ""
-    server_chan_key: str = ""
-    wecom_webhook: str = ""
-    telegram_bot_token: str = ""
-    telegram_chat_id: str = ""
-    telegram_api_base_url: str = ""
+    bark_push_url: str = Field(default="", repr=False)
+    push_plus_token: str = Field(default="", repr=False)
+    server_chan_key: str = Field(default="", repr=False)
+    wecom_webhook: str = Field(default="", repr=False)
+    telegram_bot_token: str = Field(default="", repr=False)
+    telegram_chat_id: str = Field(default="", repr=False)
+    telegram_api_base_url: str = Field(default="", repr=False)
 
     @property
     def has_any_provider(self) -> bool:
@@ -47,6 +68,8 @@ class NotificationConfig(BaseModel):
                 self.push_plus_token,
                 self.server_chan_key,
                 self.wecom_webhook,
+                self.feishu_webhook,
+                self.dingtalk_webhook,
                 self.telegram_bot_token and self.telegram_chat_id,
             ]
         )

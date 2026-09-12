@@ -16,7 +16,14 @@ def perform_daily_checkin(smzdm_client: SmzdmClient) -> CheckinResult:
 
 def fetch_vip_info(smzdm_client: SmzdmClient) -> VipInfo:
     """Fetch current VIP membership information."""
-    response_payload = smzdm_client.post("/vip")
+    extra_form_fields = None
+    if smzdm_client.is_iphone:
+        extra_form_fields = {
+            "activity_is_new_user": "0",
+            "create_center_view": "empty",
+            "with_is_create": "1",
+        }
+    response_payload = smzdm_client.post("/vip", extra_form_fields)
     vip_info = VipInfo(**response_payload.get("data", {}).get("vip", {}))
     logger.info(f"VIP 等级: {vip_info.membership_level}")
     return vip_info
@@ -38,7 +45,8 @@ def fetch_normal_checkin_reward(smzdm_client: SmzdmClient) -> RewardInfo:
 
 def claim_extra_checkin_reward(smzdm_client: SmzdmClient) -> bool:
     """Claim an available consecutive check-in reward."""
-    response_payload = smzdm_client.post("/checkin/show_view_v2")
+    extra_form_fields = {"is_install_zhangdama": "0"} if smzdm_client.is_iphone else None
+    response_payload = smzdm_client.post("/checkin/show_view_v2", extra_form_fields)
     for response_row in response_payload.get("data", {}).get("rows", []):
         if response_row.get("cell_type") != "18001":
             continue
